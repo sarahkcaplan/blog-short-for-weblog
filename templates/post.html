@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Blog. Post.</title>
+</head>
+<body>
+	<h1>A Blog Entry.</h1>
+	{% for entry in entries %}
+		{% return entry.title, entry.body %}
+	{% endfor %}
+	<div class= "title">{{entry.title}}</div>
+	<div class= "entry">{{entry.body}}</div>
+	<div class= "button">
+		<a href ="https://blog-short-for-weblog.appspot.com/">Home
+	</div>
+</body>
+</html>

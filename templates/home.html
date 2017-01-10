@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Blog.</title>
+</head>
+<body>
+	<h1>Welcome to Blog: Short for Weblog</h1>
+	<h2>Here are our latest entries!</h2>
+	<br>
+	{% for entry in entries %}
+		<div class= "title">{{entry.title}}</div>
+		<div class= "post">{{entry.body}}</div>
+	{% endfor %}
+	<div class= "button">
+		<a href ="https://blog-short-for-weblog.appspot.com/newpost">New Entry
+	</div>
+</body>
+</html>
