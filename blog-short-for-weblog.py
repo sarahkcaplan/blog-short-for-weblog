@@ -15,7 +15,7 @@ jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), a
 
 def render_str(template, **params):
   t = jinja_env.get_template(template)
-    return t.render(params)
+  return t.render(params)
 
 # Commonly used functions
 class BaseHandler(webapp2.RequestHandler):
@@ -53,7 +53,7 @@ def render_post(response, post):
 # Home page of blog display 10 latest entries
 class Home(BaseHandler):
   def get(self, title="", body=""):
-    articles = db.GqlQuery("SELECT * FROM Article ORDER BY created DESC LIMIT 10")
+    posts = db.GqlQuery("SELECT * FROM Post ORDER BY created DESC LIMIT 10")
     self.render("home.html", posts = posts)
 
 # Page for creating new posts. Successful post redirects to post's permalink location.
@@ -90,11 +90,11 @@ USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
 def valid_username(username):
   return username and USER_RE.match(username)
 
-PASS_RE = re.complie(r"^.{3,20}$")
+PASS_RE = re.compile(r"^.{3,20}$")
 def valid_password(password):
   return password and PASS_RE.match(password)
 
-EMAIL_RE = re.complie(r'^[\S]+@[\S]+\.[\S]+$')
+EMAIL_RE = re.compile(r'^[\S]+@[\S]+\.[\S]+$')
 def valid_email(email):
   return not email or EMAIL_RE.match(email)
 
@@ -145,8 +145,8 @@ class Welcome(BaseHandler):
 app = webapp2.WSGIApplication([
   ('/', Home),
   ('/newpost', NewPost ),
-  ('/([0-9]+)', PostPage)
-  ('/signup', SignUp)
+  ('/([0-9]+)', PostPage),
+  ('/signup', SignUp),
   ('/welcome', Welcome)
   ],
   debug=True)
