@@ -30,7 +30,7 @@ class BaseHandler(webapp2.RequestHandler):
 
 #### Begin blog code
 
-# Google Datastore entities for blog posts i.e. db table plus post formatting
+# Google Datastore entities for blog posts i.e. db tables
 class Post(db.Model):
   subject = db.StringProperty(required = True)
   content = db.TextProperty(required = True)
@@ -40,6 +40,13 @@ class Post(db.Model):
   def render(self):
     self._render_text = self.content.replace('\n', '<br>')
     return render_str("post.html", p = self)
+
+class User(db.Module):
+  username = db.StringProperty(required = True)
+  password = db.StringProperty(required = True)
+  email = db.StringProperty(required = False)
+  created = db.DateTimeProperty(auto_now_add = True)
+  last_modified = db.DateTimeProperty(auto_now = True)
 
 # Generic parent entity
 def blog_key(name = 'default'):
