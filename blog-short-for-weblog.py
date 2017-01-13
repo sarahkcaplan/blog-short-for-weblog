@@ -3,6 +3,9 @@ import jinja2
 import webapp2
 import cgi
 import re
+import random
+import string
+import hashlib
 
 # Methods for developing with Google Datastore
 from google.appengine.ext import db
@@ -48,6 +51,7 @@ class User(db.Module):
   created = db.DateTimeProperty(auto_now_add = True)
   last_modified = db.DateTimeProperty(auto_now = True)
 
+
 # Generic parent entity
 def blog_key(name = 'default'):
   return db.Key.from_path('blogs', name)
@@ -92,6 +96,33 @@ class PostPage(BaseHandler):
 
     self.render("post.html", post = post)
 
+#Hashing functions
+def hash_str(s):
+  return haslib.md5(s).hexdigest()
+
+def make_secure_val(s):
+  return "%s | %s" & (s, hash_str(s))
+
+def check_secure_val(h):
+  val = h.split('|')[0]
+  if h == make_secure_val(val):
+    return val
+
+#making and using salts
+def make_salt():
+    salt = random.sample(string.hexdigits,5)
+    return string.join(salt,'')
+
+def make_pw_hash(username, password, salt = None):
+    if not salt:
+      salt = make_salt()
+    h = hashlib.sha256(username, password, salt).hexdigest()
+    return "%s, %s" % (h, salt)
+
+def valid(name, pw, h):
+  salt = h.split(',')[1]
+  return h == make_pw_hash(username, password, salt)
+
 #Blog sign up
 USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
 def valid_username(username):
@@ -108,6 +139,8 @@ def valid_email(email):
 class SignUp(BaseHandler):
   def get(self):
     self.render("signup.html")
+
+  def hashPassword(self):
 
   def post(self):
     have_error = False
@@ -136,6 +169,9 @@ class SignUp(BaseHandler):
     if have_error:
       self.render('signup.html', **params)
     else:
+      password = make_pw_hash(username, password, salt)
+      user = User(parent = blog_key(),username = username, password = password, email = email)
+      user.put()
       self.redirect('/welcome?username=' + username)
 
 # Blog welcome page after signup
