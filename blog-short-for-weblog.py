@@ -7,6 +7,7 @@ import random
 import string
 import hashlib
 
+
 # Methods for developing with Google Datastore
 from google.appengine.ext import db
 
@@ -44,7 +45,7 @@ class Post(db.Model):
     self._render_text = self.content.replace('\n', '<br>')
     return render_str("post.html", p = self)
 
-class User(db.Module):
+class User(db.Model):
   username = db.StringProperty(required = True)
   password = db.StringProperty(required = True)
   email = db.StringProperty(required = False)
@@ -116,7 +117,7 @@ def make_salt():
 def make_pw_hash(username, password, salt = None):
     if not salt:
       salt = make_salt()
-    h = hashlib.sha256(username, password, salt).hexdigest()
+    h = hashlib.sha256(username + password + salt).hexdigest()
     return "%s, %s" % (h, salt)
 
 def valid(name, pw, h):
@@ -139,8 +140,6 @@ def valid_email(email):
 class SignUp(BaseHandler):
   def get(self):
     self.render("signup.html")
-
-  def hashPassword(self):
 
   def post(self):
     have_error = False
@@ -169,7 +168,7 @@ class SignUp(BaseHandler):
     if have_error:
       self.render('signup.html', **params)
     else:
-      password = make_pw_hash(username, password, salt)
+      password = make_pw_hash(username, password)
       user = User(parent = blog_key(),username = username, password = password, email = email)
       user.put()
       self.redirect('/welcome?username=' + username)
