@@ -6,7 +6,7 @@ import re
 import random
 import string
 import hashlib
-
+import hmac
 
 # Methods for developing with Google Datastore
 from google.appengine.ext import db
@@ -17,7 +17,10 @@ template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 #Envoking Jinja2
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape = True)
 
+secret = "evernote"
+
 def render_str(template, **params):
+  params['user'] = self.user
   t = jinja_env.get_template(template)
   return t.render(params)
 
@@ -31,6 +34,21 @@ class BaseHandler(webapp2.RequestHandler):
 
   def render(self, template, **kw):
     self.write(self.render_str(template, **kw))
+
+  def set_secure_cookie(self, name, val):
+    cookie_val = make_secure_val(val)
+    self.response.headers.add_header(
+      'Set-Cookie',
+      '%s=%s ; Path =/' % (name, cookie_val))
+
+  def read_secure_cookie(self, name):
+    cookie_val = self.request.cookies.get(name)
+    return cookie_val and check_secure_val(cookie_val)
+
+  def initialize(self, *a, *kw):
+    webapp2.RequestHandler.initialize(self, *a, **kw)
+    uid = self.read_secure_cookie('user_id')
+    self.user = uid and User.by_id(uid)
 
 #### Begin blog code
 
@@ -46,16 +64,35 @@ class Post(db.Model):
     return render_str("post.html", p = self)
 
 class User(db.Model):
-  username = db.StringProperty(required = True)
-  password = db.StringProperty(required = True)
+  name = db.StringProperty(required = True)
+  pw_hash = db.StringProperty(required = True)
   email = db.StringProperty(required = False)
   created = db.DateTimeProperty(auto_now_add = True)
   last_modified = db.DateTimeProperty(auto_now = True)
 
+  @classmethod
+  def by_id(cls, uid):
+    return user.get_by_id(uid, parent = users_key())
 
-# Generic parent entity
+  @classmethod
+  def by_name(cls, name):
+    u = cls.all().filter("name =", name).get()
+    return u
+
+  @classmethod
+  def register(cls, name, pw, email = None):
+    pw_hash = make_pw_hash(name, pw)
+    return cls(parent = users_key(),
+            name = name,
+            pw_hash = pw_hash,
+            email = email)
+
+# Generic parent entities
 def blog_key(name = 'default'):
   return db.Key.from_path('blogs', name)
+
+def users_key(group = 'default'):
+  return db.Key.from_path('users', group)
 
 # Blog post formatting
 def render_post(response, post):
@@ -101,12 +138,12 @@ class PostPage(BaseHandler):
 def hash_str(s):
   return haslib.md5(s).hexdigest()
 
-def make_secure_val(s):
-  return "%s | %s" & (s, hash_str(s))
+def make_secure_val(val):
+  return "%s | %s" & (val, hmac.new(secret, val).hexdigest())
 
-def check_secure_val(h):
-  val = h.split('|')[0]
-  if h == make_secure_val(val):
+def check_secure_val(secure_val):
+  val = secure_val.split('|')[0]
+  if secure_val == make_secure_val(val):
     return val
 
 #making and using salts
@@ -120,7 +157,7 @@ def make_pw_hash(username, password, salt = None):
     h = hashlib.sha256(username + password + salt).hexdigest()
     return "%s, %s" % (h, salt)
 
-def valid(name, pw, h):
+def valid_pw(name, pw, h):
   salt = h.split(',')[1]
   return h == make_pw_hash(username, password, salt)
 
@@ -143,42 +180,60 @@ class SignUp(BaseHandler):
 
   def post(self):
     have_error = False
-    username = self.request.get('username')
-    password = self.request.get('password')
-    verify = self.request.get('verify')
-    email = self.request.get('email')
+    self.username = self.request.get('username')
+    slef.password = self.request.get('password')
+    self.verify = self.request.get('verify')
+    self.email = self.request.get('email')
 
-    params = dict(username = username, email = email)
+    params = dict(username = self.username, email = self.email)
 
-    if not valid_username(username):
+    if not valid_username(self.username):
       params['error_username'] = "That's not a valid username."
       have_error = True
 
-    if not valid_password(password):
+    if not valid_password(self.password):
       params['error_password'] = "That's not a valid password."
       have_error = True
-    elif password != verify:
+    elif self.password != self.verify:
       params['error_verify'] = "Your passwords didn't match."
       have_error = True
 
-    if not valid_email(email):
+    if not valid_email(self.email):
       params['error_email'] = "That's not a valid email."
       have_error = True
 
     if have_error:
       self.render('signup.html', **params)
     else:
-      password = make_pw_hash(username, password)
-      user = User(parent = blog_key(),username = username, password = password, email = email)
-      user.put()
-      self.redirect('/welcome?username=' + username)
+      self.done()
+
+  def done(self, *a, **kw):
+    raise NotImplementedError
+
+class WelcomeTamper(Signup):
+  def done(self):
+    self.redirect('/welcome?username=' + self.username)
+
+#Register handler
+class Register(SignUp):
+  def done(self):
+    #make sure the user doesn't already exist
+    u = User.by_name(self.username)
+    if u:
+      msg = "That user already exists."
+      self.render('signup.html', error_username = msg)
+    else:
+      u = User.register(self.username, self.password, self.email)
+      u.put()
+
+      self.login(u)
+      self.redirect('/welcome')
 
 # Blog welcome page after signup
 class Welcome(BaseHandler):
   def get(self):
-    username = self.request.get('username')
-    if valid_username(username):
-      self.render('welcome.html', username = username)
+    if self.user:
+      self.render('welcome.html', username = self.user.name)
     else:
       self.redirect('/signup')
 
