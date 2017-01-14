@@ -19,8 +19,8 @@ jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), a
 
 secret = "evernote"
 
+
 def render_str(template, **params):
-  params['user'] = self.user
   t = jinja_env.get_template(template)
   return t.render(params)
 
@@ -45,7 +45,13 @@ class BaseHandler(webapp2.RequestHandler):
     cookie_val = self.request.cookies.get(name)
     return cookie_val and check_secure_val(cookie_val)
 
-  def initialize(self, *a, *kw):
+  def login(self, user):
+    self.set_secure_cookie('user_id', str(user.key().id()))
+
+  def logout(self):
+    self.response.headers.add_header('Set-Cookie', 'user_id=; Path/')
+
+  def initialize(self, *a, **kw):
     webapp2.RequestHandler.initialize(self, *a, **kw)
     uid = self.read_secure_cookie('user_id')
     self.user = uid and User.by_id(uid)
@@ -86,6 +92,13 @@ class User(db.Model):
             name = name,
             pw_hash = pw_hash,
             email = email)
+
+  @classmethod
+  def login(cls, name, pw):
+    u = cls.by_name(name)
+    if u and valid_pw(name, pw, u.pw_hash):
+      return u
+
 
 # Generic parent entities
 def blog_key(name = 'default'):
@@ -181,7 +194,7 @@ class SignUp(BaseHandler):
   def post(self):
     have_error = False
     self.username = self.request.get('username')
-    slef.password = self.request.get('password')
+    self.password = self.request.get('password')
     self.verify = self.request.get('verify')
     self.email = self.request.get('email')
 
@@ -210,7 +223,7 @@ class SignUp(BaseHandler):
   def done(self, *a, **kw):
     raise NotImplementedError
 
-class WelcomeTamper(Signup):
+class WelcomeTamper(SignUp):
   def done(self):
     self.redirect('/welcome?username=' + self.username)
 
@@ -237,6 +250,29 @@ class Welcome(BaseHandler):
     else:
       self.redirect('/signup')
 
+#Login handler
+class Login(BaseHandler):
+  def get(self):
+    self.render("login.html")
+
+  def post(self):
+    username = self.request.get('username')
+    password = self.request.get('password')
+
+    u = User.login(username, password)
+    if u:
+      self.login(u)
+      self.redirect('/welcome')
+
+    else:
+      login_error = "Invalid login"
+      self.render("login.html", login_error = login_error)
+
+#Logout handler
+class Logout(BaseHandler):
+  def get(self):
+    self.logout()
+    self.redirect('/signup')
 
 # URI to Handler mapping
 app = webapp2.WSGIApplication([
@@ -244,7 +280,9 @@ app = webapp2.WSGIApplication([
   ('/newpost', NewPost ),
   ('/([0-9]+)', PostPage),
   ('/signup', SignUp),
-  ('/welcome', Welcome)
+  ('/welcome', Welcome),
+  ('/login', Login),
+  ('/logout', Logout)
   ],
   debug=True)
 
