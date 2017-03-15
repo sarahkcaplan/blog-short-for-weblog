@@ -211,6 +211,9 @@ def blog_key(name = 'default'):
 def users_key(group = 'default'):
   return db.Key.from_path('users', group)
 
+def likes_key(group = 'default'):
+  return db.Key.from_path('likes', group)
+
 # Blog post formatting
 def render_post(response, post):
   response.write('<b>' + post.subject + '</b><br>')
@@ -247,7 +250,7 @@ class NewPost(BaseHandler):
       # This is invoking a model class constructor using keyword arguments
       p = Post(parent = blog_key(), subject = subject, content = content)
       p.put()
-      l = Likes(post_id = p.key().id())
+      l = Likes(parent = likes_key(), post_id = p.key().id())
       l.put()
 
       # "p.key().id() first gets the key for the post object, then it gets the id from the key"
@@ -265,15 +268,17 @@ class PostPage(BaseHandler):
 # and then it queries the post entry based on that key. Finally, it renders
 # the post template with that post entry's data
   def get(self, post_id):
-    key = db.Key.from_path('Post', int(post_id), parent =blog_key())
-    post = db.get(key)
+    post_key = db.Key.from_path('Post', int(post_id), parent =blog_key())
+    post = db.get(post_key)
 
 
     if not post:
       self.error(404)
       return
 
-    likes = Likes.all().filter('post_id=', post_id).get()
+    like_key = db.Key.from_path('Likes', int(post_id), parent = likes_key())
+    likes = db.get(like_key)
+    # likes = Likes.all().filter('post_id =', post_id).get()
 
     comments = db.GqlQuery("SELECT * FROM Comment ORDER BY last_modified DESC LIMIT 10")
 
@@ -463,9 +468,8 @@ class Logout(BaseHandler):
 
 class VoteUp(BaseHandler):
   def get(self, post_id):
-    like_q = Likes.all().filter('post_id=', post_id).get()
-    count = like_q.like_count
-    likes = Likes(post_id = post_id, like_count = count+1)
+    like_q = Likes.all().filter('post_id =', post_id).get()
+    likes = Likes(post_id = int(post_id), like_count = 1)
     likes.put()
     self.redirect("/%s" % post_id)
 
