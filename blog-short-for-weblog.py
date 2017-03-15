@@ -273,7 +273,7 @@ class PostPage(BaseHandler):
       self.error(404)
       return
 
-    likes = Likes.all().filter('post_id =', post_id).get()
+    likes = Likes.all().filter('post_id=', post_id).get()
 
     comments = db.GqlQuery("SELECT * FROM Comment ORDER BY last_modified DESC LIMIT 10")
 
@@ -463,11 +463,9 @@ class Logout(BaseHandler):
 
 class VoteUp(BaseHandler):
   def get(self, post_id):
-    likes = Likes.all().filter('post_id =', post_id).get()
-    if likes == 'None':
-      likes = 0
-
-    likes.like_count = likes.like_count + 1
+    like_q = Likes.all().filter('post_id=', post_id).get()
+    count = like_q.like_count
+    likes = Likes(post_id = post_id, like_count = count+1)
     likes.put()
     self.redirect("/%s" % post_id)
 
