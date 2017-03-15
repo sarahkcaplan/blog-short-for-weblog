@@ -1,14 +1,20 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<title>Blog. Post.</title>
-</head>
-<body>
+
 	<h1>A Blog Post.</h1>
-	<div class= "title">{{post.subject}}</div>
-	<div class= "entry">{{post.content}}</div>
-	<div class= "button">
-		<a href ="https://blog-short-for-weblog.appspot.com/">Home
-	</div>
-</body>
-</html>
+	<div <!-- class= "title" -->{{post.subject}}</div>
+	<div <!-- class= "entry">{{post.content}}</div>
+	<div <!-- class ="like">Likes: {{likes}}</div>
+	<a href="/voteup/{{post_id}}" >LIKE</a>
+	<form method ="post" action='/newcomment'>
+		<div <!-- class="comments" -->
+			<p>Leave a Comment</p>
+			<textarea name="content"></textarea>
+		{% for comment in comments %}
+	<!-- 		<div class= "author">{{comment.author}}</div> -->
+			<div>{{comment.content}}</div>
+			<div <!-- class= "date_time" -->>{{comment.last_modified}}</div>
+		{% endfor %}
+		</div>
+		<input type="submit">
+	</form>
+
+
