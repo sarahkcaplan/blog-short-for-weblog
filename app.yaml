@@ -4,6 +4,12 @@ api_version: 1
 threadsafe: true
 
 handlers:
+- url: /css
+  static_dir: static/css
+
+- url: /imgages
+  static_dir: static/images
+
 - url: /.*
   script: blog-short-for-weblog.app
 
