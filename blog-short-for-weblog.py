@@ -124,6 +124,7 @@ class Post(db.Model):
   content = db.TextProperty(required = True)
   created = db.DateTimeProperty(auto_now_add = True)
   last_modified = db.DateTimeProperty(auto_now = True)
+  liked_by = db.ListProperty(int)
 
 # ?? "p = self": What keyword is p? And why is it set to self?
 # ?? What does setting it to self do?
@@ -142,10 +143,6 @@ class User(db.Model):
   created = db.DateTimeProperty(auto_now_add = True)
   last_modified = db.DateTimeProperty(auto_now = True)
 
-class Likes(db.Model):
-  like_count = db.IntegerProperty(default= 0)
-  post_id = db.IntegerProperty(required = True)
-  liked_by = db.ListProperty(int) #[1,2,3,4]
 
 class Comment(db.Model):
   # author = db.StringProperty(required = True)
