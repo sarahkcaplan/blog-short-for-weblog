@@ -188,10 +188,6 @@ class Comment(db.Model):
     if u and valid_pw(name, pw, u.pw_hash):
       return u
 
-  @classmethod
-  def post_like(cls, like, post_id):
-    l = cls.all().filter("post_id =", )
-    pass
 
 # TODO: Put this with their respective entities
 # Might want posts and comments to have same parent
@@ -208,9 +204,6 @@ def blog_key(name = 'default'):
 def users_key(group = 'default'):
   return db.Key.from_path('users', group)
 
-def likes_key(group = 'default'):
-  return db.Key.from_path('likes', group)
-
 # Blog post formatting
 def render_post(response, post):
   response.write('<b>' + post.subject + '</b><br>')
@@ -226,14 +219,20 @@ def render_post(response, post):
 
 class Home(BaseHandler):
   def get(self):
-    posts = db.GqlQuery("SELECT * FROM Post ORDER BY last_modified DESC LIMIT 10")
-    self.render("home.html", posts = posts)
+    if self.user:
+      posts = db.GqlQuery("SELECT * FROM Post ORDER BY last_modified DESC LIMIT 10")
+      self.render("home.html", posts = posts)
+    else:
+      self.redirect("/signup")
 
 # Page for creating new posts. Successful post redirects to post's permalink location.
 
 class NewPost(BaseHandler):
   def get(self):
-    self.render("newpost.html")
+    if self.user:
+      self.render("newpost.html")
+    else:
+      self.redirect("/signup")
 
 # "self.request.get" is how the POST method gets the form data (using Webapp2/GAE)
 # In particular it gets the data for "subject" and "content"
@@ -242,13 +241,14 @@ class NewPost(BaseHandler):
   def post(self):
     subject = self.request.get("subject")
     content = self.request.get("content")
+    liked_by = int(self.request.cookies.get("user_id"))
 
     if subject and content:
       # This is invoking a model class constructor using keyword arguments
-      p = Post(parent = blog_key(), subject = subject, content = content)
+      p = Post(parent = blog_key(), subject = subject, content = content, liked_by = [liked_by])
       p.put()
-      l = Likes(parent = likes_key(), post_id = p.key().id())
-      l.put()
+      # l = Likes(parent = likes_key(), post_id = p.key().id())
+      # l.put()
 
       # "p.key().id() first gets the key for the post object, then it gets the id from the key"
       # ( key = KIND + ID) Kind here is Post.
@@ -265,22 +265,19 @@ class PostPage(BaseHandler):
 # and then it queries the post entry based on that key. Finally, it renders
 # the post template with that post entry's data
   def get(self, post_id):
-    post_key = db.Key.from_path('Post', int(post_id), parent =blog_key())
-    post = db.get(post_key)
+    if self.user:
+      post_key = db.Key.from_path('Post', int(post_id), parent =blog_key())
+      post = db.get(post_key)
+      if not post:
+        self.error(404)
+        return
+      like_key = db.Key.from_path('Likes', int(post_id), parent = likes_key())
+      likes = db.get(like_key)
+# likes = Likes.all().filter('post_id =', post_id).get()
 
-
-    if not post:
-      self.error(404)
-      return
-
-    like_key = db.Key.from_path('Likes', int(post_id), parent = likes_key())
-    likes = db.get(like_key)
-    # likes = Likes.all().filter('post_id =', post_id).get()
-
-    comments = db.GqlQuery("SELECT * FROM Comment ORDER BY last_modified DESC LIMIT 10")
-
-
-    self.render("post.html", post = post, comments = comments, likes = likes, post_id = post_id)
+      comments = db.GqlQuery("SELECT * FROM Comment ORDER BY last_modified DESC LIMIT 10")
+    else:
+      self.render("post.html", post = post, comments = comments, likes = likes, post_id = post_id)
 
 # On POST, post function retrieves post_id from the URL then redirects
 # to a new URI using that post id. The system then goes down to where app is
@@ -385,14 +382,17 @@ class SignUp(BaseHandler):
 
 class EditPost(BaseHandler):
   def get(self, post_id):
-    key = db.Key.from_path('Post', int(post_id), parent =blog_key())
-    post = db.get(key)
+    if self.user:
+      key = db.Key.from_path('Post', int(post_id), parent =blog_key())
+      post = db.get(key)
 
-    if not post:
-      self.error(404)
-      return
+      if not post:
+        self.error(404)
+        return
 
-    self.render("editpost.html", post = post)
+      self.render("editpost.html", post = post)
+    else:
+      self.redirect("/signup")
 
   def post(self, post_id):
     key = db.Key.from_path('Post', int(post_id), parent =blog_key())
@@ -465,11 +465,14 @@ class Logout(BaseHandler):
 
 class VoteUp(BaseHandler):
   def get(self, post_id):
-    like_q = Likes.all().filter('post_id =', post_id).get()
-    likes = Likes(post_id = int(post_id), like_count = 1)
-    likes.put()
-    self.redirect("/%s" % post_id)
-
+    if self.user:
+      self.render('welcome.html')
+      like_q = Likes.all().filter('post_id =', post_id).get()
+      likes = Likes(post_id = int(post_id), like_count = 1)
+      likes.put()
+      self.redirect("/%s" % post_id)
+    else:
+      self.redirect('/signup')
     # post_id = post_id
     # likeObj = Likes('post_id =', post_id)
     # likeObj.like_count
