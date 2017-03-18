@@ -34,6 +34,27 @@ class BaseHandler(webapp2.RequestHandler):
   def render(self, template, **kw):
     self.write(self.render_str(template, **kw))
 
+  def get_user_from_cookie(self):
+    user_id = self.check_for_valid_cookie()
+    print "In GET_USER_COOKIE: user_id : ", user_id
+    if user_id:
+      return User.get_by_id(int(user_id), parent=users_key())
+    else:
+      print "GET_USER_COOKIE : NONE"
+      return None
+
+  def check_for_valid_cookie(self):
+    user_id = self.request.cookies.get('user_id')
+    if user_id:
+      print "CHECK FOR VALID COOKIE: user_id: " , user_id # id | hash(id)
+      is_valid_cookie = check_secure_val(str(user_id))
+      if is_valid_cookie:
+        print "is_valid_cookie"
+        return self.request.cookies.get('user_id').split("|")[0]
+      return None
+    else:
+      print "Boo"
+
   def set_secure_cookie(self, name, val):
     cookie_val = make_secure_val(val)
     self.response.headers.add_header(
@@ -81,37 +102,36 @@ class User(db.Model):
   created = db.DateTimeProperty(auto_now_add = True)
   last_modified = db.DateTimeProperty(auto_now = True)
 
+  @classmethod
+  def by_id(cls, uid):
+    return user.get_by_id(uid, parent = users_key())
+
+  # This returns the db entry for a user by name
+  @classmethod
+  def by_name(cls, name):
+    u = cls.all().filter("name =", name).get()
+    return u
+
+  # This registers the user
+  @classmethod
+  def register(cls, name, pw, email = None):
+    pw_hash = make_pw_hash(name, pw)
+    return cls(parent = users_key(),
+            name = name,
+            pw_hash = pw_hash,
+            email = email)
+
+  # This returns the username if the user is logged in
+  @classmethod
+  def login(cls, name, pw):
+    u = cls.by_name(name)
+    if u and valid_pw(name, pw, u.pw_hash):
+      return u
 
 class Comment(db.Model):
   # author = db.StringProperty(required = True)
   content = db.TextProperty(required = True)
   last_modified = db.DateTimeProperty(auto_now_add = True)
-
-@classmethod
-def by_id(cls, uid):
-  return user.get_by_id(uid, parent = users_key())
-
-# This returns the db entry for a user by name
-@classmethod
-def by_name(cls, name):
-  u = cls.all().filter("name =", name).get()
-  return u
-
-# This registers the user
-@classmethod
-def register(cls, name, pw, email = None):
-  pw_hash = make_pw_hash(name, pw)
-  return cls(parent = users_key(),
-          name = name,
-          pw_hash = pw_hash,
-          email = email)
-
-# This returns the username if the user is logged in
-@classmethod
-def login(cls, name, pw):
-  u = cls.by_name(name)
-  if u and valid_pw(name, pw, u.pw_hash):
-    return u
 
 
 def blog_key(name = 'default'):
@@ -201,6 +221,7 @@ def make_secure_val(val):
   return "%s | %s" % (val, hmac.new(secret, val).hexdigest())
 
 def check_secure_val(secure_val):
+  print "CHECK SECURE VAL: secure_val: ", secure_val
   val = secure_val.split('|')[0]
   if secure_val == make_secure_val(val):
     return val
@@ -266,10 +287,10 @@ class SignUp(BaseHandler):
     if have_error:
       self.render('signup.html', **params)
     else:
-      Register.done(self)
-
-
-
+      #Register.done(self)
+      self.done()
+    def done(self):
+      raise NotImplementedError
 
 # Register handler
 class Register(SignUp):
@@ -281,14 +302,18 @@ class Register(SignUp):
     else:
       u = User.register(self.username, self.password, self.email)
       u.put()
+      #self.login(u)
+      self.response.headers.add_header(
+        'Set-Cookie', 'user_id=%s' % make_secure_val(str(u.key().id())))
 
-      self.login(u)
       self.redirect('/welcome')
 
 # Blog welcome page after signup
 class Welcome(BaseHandler):
   def get(self):
-    if self.user:
+    cookie_user = self.get_user_from_cookie()
+    print cookie_user
+    if cookie_user:
       self.render('welcome.html')
     else:
       self.redirect('/signup')
