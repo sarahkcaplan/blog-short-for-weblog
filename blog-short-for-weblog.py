@@ -8,8 +8,8 @@ import string
 import hashlib
 import hmac
 
-
 from google.appengine.ext import db
+
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 
@@ -22,7 +22,6 @@ def render_str(template, **params):
   return t.render(params)
 
 ## Commonly used functions
-
 class BaseHandler(webapp2.RequestHandler):
 
   def write(self, *a, **kw):
@@ -70,9 +69,9 @@ class Post(db.Model):
     self._render_text = self.content.replace('\n', '<br>')
     return render_str("post.html", p = self)
 
-# class Photo(db.Model):
-#   title = db.StringProperty(required = True)
-#   last_modified = db.DateTimeProperty(auto_now_add = True)
+class Photo(db.Model):
+  title = db.StringProperty(required = True)
+  last_modified = db.DateTimeProperty(auto_now_add = True)
 
 class User(db.Model):
   name = db.StringProperty(required = True)
@@ -87,32 +86,34 @@ class Comment(db.Model):
   content = db.TextProperty(required = True)
   last_modified = db.DateTimeProperty(auto_now_add = True)
 
-@classmethod
-def by_id(cls, uid):
-  return user.get_by_id(uid, parent = users_key())
+  @classmethod
+  def by_id(cls, uid):
+    return user.get_by_id(uid, parent = users_key())
 
 # This returns the db entry for a user by name
-@classmethod
-def by_name(cls, name):
-  u = cls.all().filter("name =", name).get()
-  return u
-
-# This registers the user
-@classmethod
-def register(cls, name, pw, email = None):
-  pw_hash = make_pw_hash(name, pw)
-  return cls(parent = users_key(),
-          name = name,
-          pw_hash = pw_hash,
-          email = email)
-
-# This returns the username if the user is logged in
-@classmethod
-def login(cls, name, pw):
-  u = cls.by_name(name)
-  if u and valid_pw(name, pw, u.pw_hash):
+  @classmethod
+  def by_name(cls, name):
+    u = cls.all().filter("name =", name).get()
     return u
 
+  @classmethod
+  def register(cls, name, pw, email = None):
+    pw_hash = make_pw_hash(name, pw)
+    return cls(parent = users_key(),
+            name = name,
+            pw_hash = pw_hash,
+            email = email)
+
+  @classmethod
+  def login(cls, name, pw):
+    u = cls.by_name(name)
+    if u and valid_pw(name, pw, u.pw_hash):
+      return u
+
+  @classmethod
+  def post_like(cls, like, post_id):
+    l = cls.all().filter("post_id =", )
+    pass
 
 def blog_key(name = 'default'):
   return db.Key.from_path('blogs', name)
@@ -120,60 +121,60 @@ def blog_key(name = 'default'):
 def users_key(group = 'default'):
   return db.Key.from_path('users', group)
 
+def likes_key(group = 'default'):
+  return db.Key.from_path('likes', group)
+
 # Blog post formatting
 def render_post(response, post):
   response.write('<b>' + post.subject + '</b><br>')
   response.write(post.content)
 
-
 class Home(BaseHandler):
   def get(self):
-    if self.user:
-      posts = db.GqlQuery("SELECT * FROM Post ORDER BY last_modified DESC LIMIT 10")
-      self.render("home.html", posts = posts)
-    else:
-      self.redirect("/signup")
+    posts = db.GqlQuery("SELECT * FROM Post ORDER BY last_modified DESC LIMIT 10")
+    self.render("home.html", posts = posts)
 
 # Page for creating new posts. Successful post redirects to post's permalink location.
+
 class NewPost(BaseHandler):
   def get(self):
-    if self.user:
-      self.render("newpost.html")
-    else:
-      self.redirect("/signup")
+    self.render("newpost.html")
 
   def post(self):
     subject = self.request.get("subject")
     content = self.request.get("content")
-    liked_by = int(self.request.cookies.get("user_id"))
 
     if subject and content:
       # This is invoking a model class constructor using keyword arguments
-      p = Post(parent = blog_key(), subject = subject, content = content, liked_by = [liked_by])
+      p = Post(parent = blog_key(), subject = subject, content = content)
       p.put()
-      # l = Likes(parent = likes_key(), post_id = p.key().id())
-      # l.put()
+      l = Likes(parent = likes_key(), post_id = p.key().id())
+      l.put()
+
       self.redirect("/%s" % str(p.key().id()))
     else:
       error = "we need both a title and some text!"
       self.render("newpost.html", subject = subject, content = content, error = error)
 
-# Handler for post's pages. Defines post's db key for URI.
+# Handler for post's pages. Defines post's db key for URI. (?? Or maybe gets post_id from URI or both??)
 class PostPage(BaseHandler):
   def get(self, post_id):
-    if self.user:
-      post_key = db.Key.from_path('Post', int(post_id), parent =blog_key())
-      post = db.get(post_key)
-      if not post:
-        self.error(404)
-        return
-      like_key = db.Key.from_path('Likes', int(post_id), parent = likes_key())
-      likes = db.get(like_key)
-    # likes = Likes.all().filter('post_id =', post_id).get()
-      comments = db.GqlQuery("SELECT * FROM Comment ORDER BY last_modified DESC LIMIT 10")
-    else:
-      self.render("post.html", post = post, comments = comments, likes = likes, post_id = post_id)
+    post_key = db.Key.from_path('Post', int(post_id), parent =blog_key())
+    post = db.get(post_key)
 
+
+    if not post:
+      self.error(404)
+      return
+
+    like_key = db.Key.from_path('Likes', int(post_id), parent = likes_key())
+    likes = db.get(like_key)
+    # likes = Likes.all().filter('post_id =', post_id).get()
+
+    comments = db.GqlQuery("SELECT * FROM Comment ORDER BY last_modified DESC LIMIT 10")
+
+
+    self.render("post.html", post = post, comments = comments, likes = likes, post_id = post_id)
 
   def post(self, post_id, **value):
     if value:
@@ -244,8 +245,6 @@ class SignUp(BaseHandler):
     self.verify = self.request.get('verify')
     self.email = self.request.get('email')
 
-# This dictionary is used to re-populate the fields with the
-# data given by the user when the form is returned due to errors
     params = dict(username = self.username, email = self.email)
 
     if not valid_username(self.username):
@@ -266,14 +265,37 @@ class SignUp(BaseHandler):
     if have_error:
       self.render('signup.html', **params)
     else:
-      Register.done(self)
+      self.redirect('/welcome')
 
+class EditPost(BaseHandler):
+  def get(self, post_id):
+    key = db.Key.from_path('Post', int(post_id), parent =blog_key())
+    post = db.get(key)
 
+    if not post:
+      self.error(404)
+      return
+
+    self.render("editpost.html", post = post)
+
+  def post(self, post_id):
+    key = db.Key.from_path('Post', int(post_id), parent =blog_key())
+    post = db.get(key)
+    post.subject = self.request.get("subject")
+    post.content = self.request.get("content")
+
+    if post.subject and post.content:
+      post.put()
+      self.redirect("/%s" % str(post.key().id()))
+    else:
+      error = "we need both a title and some text!"
+      self.render("newpost.html", subject = subject, content = content, error = error)
 
 
 # Register handler
 class Register(SignUp):
   def done(self):
+
     u = User.by_name(self.username)
     if u:
       msg = "That user already exists."
@@ -318,44 +340,13 @@ class Logout(BaseHandler):
     self.redirect('/signup')
 
 
-class EditPost(BaseHandler):
-  def get(self, post_id):
-    if self.user:
-      key = db.Key.from_path('Post', int(post_id), parent =blog_key())
-      post = db.get(key)
-
-      if not post:
-        self.error(404)
-        return
-
-      self.render("editpost.html", post = post)
-    else:
-      self.redirect("/signup")
-
-  def post(self, post_id):
-    key = db.Key.from_path('Post', int(post_id), parent =blog_key())
-    post = db.get(key)
-    post.subject = self.request.get("subject")
-    post.content = self.request.get("content")
-
-    if post.subject and post.content:
-      post.put()
-      self.redirect("/%s" % str(post.key().id()))
-    else:
-      error = "we need both a title and some text!"
-      self.render("newpost.html", subject = subject, content = content, error = error)
-
-
 class VoteUp(BaseHandler):
   def get(self, post_id):
-    if self.user:
-      self.render('welcome.html')
-      like_q = Likes.all().filter('post_id =', post_id).get()
-      likes = Likes(post_id = int(post_id), like_count = 1)
-      likes.put()
-      self.redirect("/%s" % post_id)
-    else:
-      self.redirect('/signup')
+    like_q = Likes.all().filter('post_id =', post_id).get()
+    likes = Likes(post_id = int(post_id), like_count = 1)
+    likes.put()
+    self.redirect("/%s" % post_id)
+
     # post_id = post_id
     # likeObj = Likes('post_id =', post_id)
     # likeObj.like_count
