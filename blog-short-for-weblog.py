@@ -21,6 +21,26 @@ def render_str(template, **params):
   t = jinja_env.get_template(template)
   return t.render(params)
 
+#Hashing functions
+def hash_str(s):
+  return haslib.md5(s).hexdigest()
+
+def make_secure_val(val):
+  print "2. ~make_secure_val()~ val =", val
+  return "%s | %s" % (val, hmac.new(secret, val).hexdigest())
+
+
+def check_secure_val(secure_val):
+  print "check_secure_val() 'secure_val'=", secure_val
+  val = secure_val.split('|')[0]
+  print "check_secure_val 'val'=", val
+  if secure_val == make_secure_val(val):
+    print "secure_val and make_secure_val are the same"
+    return val
+  else:
+    print "This is why you need else statements"
+
+
 ## Commonly used functions
 class BaseHandler(webapp2.RequestHandler):
 
@@ -35,12 +55,19 @@ class BaseHandler(webapp2.RequestHandler):
 
   def set_secure_cookie(self, name, val):
     cookie_val = make_secure_val(val)
+    print "1. set_secure_cookie() 'make_secure_val(val)'=", make_secure_val(val)
+    print "set_secure_cookie() name =", name
+    print "set_secure_cookie() val =", val
+    print "set_secure_cookie() 'name, cookie_val'= ", name, cookie_val
     self.response.headers.add_header(
       'Set-Cookie',
       '%s=%s ; Path =/' % (name, cookie_val))
 
   def read_secure_cookie(self, name):
-    cookie_val = self.request.cookies.get(name)
+    cookie_val = self.request.cookies.get(name) #Returns user id, does not include hash (right???)
+    print "read_secure_cookie() name = :", name
+    print "read_secure_cookie() cookie_val = :", cookie_val
+    print "read_secure_cookie() return 'check_secure_val(cookie_val)'=", check_secure_val(cookie_val)
     return cookie_val and check_secure_val(cookie_val)
 
   def login(self, user):
@@ -51,8 +78,11 @@ class BaseHandler(webapp2.RequestHandler):
 
   def initialize(self, *a, **kw):
     webapp2.RequestHandler.initialize(self, *a, **kw)
+    print "***Init gets called***"
     uid = self.read_secure_cookie('user_id')
+    print "initialize() 'uid' = ", uid
     self.user = uid and User.by_id(uid)
+    print "initialize () 'self.user' = ", self.user
 
 #### Begin blog code
 
@@ -73,18 +103,17 @@ class Photo(db.Model):
   title = db.StringProperty(required = True)
   last_modified = db.DateTimeProperty(auto_now_add = True)
 
+class Comment(db.Model):
+  # author = db.StringProperty(required = True)
+  content = db.TextProperty(required = True)
+  last_modified = db.DateTimeProperty(auto_now_add = True)
+
 class User(db.Model):
   name = db.StringProperty(required = True)
   pw_hash = db.StringProperty(required = True)
   email = db.StringProperty(required = False)
   created = db.DateTimeProperty(auto_now_add = True)
   last_modified = db.DateTimeProperty(auto_now = True)
-
-
-class Comment(db.Model):
-  # author = db.StringProperty(required = True)
-  content = db.TextProperty(required = True)
-  last_modified = db.DateTimeProperty(auto_now_add = True)
 
   @classmethod
   def by_id(cls, uid):
@@ -110,10 +139,10 @@ class Comment(db.Model):
     if u and valid_pw(name, pw, u.pw_hash):
       return u
 
-  @classmethod
-  def post_like(cls, like, post_id):
-    l = cls.all().filter("post_id =", )
-    pass
+  # @classmethod
+  # def post_like(cls, like, post_id):
+  #   l = cls.all().filter("post_id =", )
+  #   pass
 
 def blog_key(name = 'default'):
   return db.Key.from_path('blogs', name)
@@ -194,17 +223,6 @@ class PostPage(BaseHandler):
 
     self.redirect("/%s/edit" % post_id)
 
-#Hashing functions
-def hash_str(s):
-  return haslib.md5(s).hexdigest()
-
-def make_secure_val(val):
-  return "%s | %s" % (val, hmac.new(secret, val).hexdigest())
-
-def check_secure_val(secure_val):
-  val = secure_val.split('|')[0]
-  if secure_val == make_secure_val(val):
-    return val
 
 #making and using salts
 def make_salt():
@@ -265,37 +283,13 @@ class SignUp(BaseHandler):
     if have_error:
       self.render('signup.html', **params)
     else:
-      self.redirect('/welcome')
+      self.done()
 
-class EditPost(BaseHandler):
-  def get(self, post_id):
-    key = db.Key.from_path('Post', int(post_id), parent =blog_key())
-    post = db.get(key)
-
-    if not post:
-      self.error(404)
-      return
-
-    self.render("editpost.html", post = post)
-
-  def post(self, post_id):
-    key = db.Key.from_path('Post', int(post_id), parent =blog_key())
-    post = db.get(key)
-    post.subject = self.request.get("subject")
-    post.content = self.request.get("content")
-
-    if post.subject and post.content:
-      post.put()
-      self.redirect("/%s" % str(post.key().id()))
-    else:
-      error = "we need both a title and some text!"
-      self.render("newpost.html", subject = subject, content = content, error = error)
 
 
 # Register handler
 class Register(SignUp):
   def done(self):
-
     u = User.by_name(self.username)
     if u:
       msg = "That user already exists."
@@ -305,7 +299,7 @@ class Register(SignUp):
       u.put()
 
       self.login(u)
-      self.redirect('/welcome')
+      self.redirect('/newpost')
 
 # Blog welcome page after signup
 class Welcome(BaseHandler):
@@ -339,13 +333,36 @@ class Logout(BaseHandler):
     self.logout()
     self.redirect('/signup')
 
-
-class VoteUp(BaseHandler):
+class EditPost(BaseHandler):
   def get(self, post_id):
-    like_q = Likes.all().filter('post_id =', post_id).get()
-    likes = Likes(post_id = int(post_id), like_count = 1)
-    likes.put()
-    self.redirect("/%s" % post_id)
+    key = db.Key.from_path('Post', int(post_id), parent =blog_key())
+    post = db.get(key)
+
+    if not post:
+      self.error(404)
+      return
+
+    self.render("editpost.html", post = post)
+
+  def post(self, post_id):
+    key = db.Key.from_path('Post', int(post_id), parent =blog_key())
+    post = db.get(key)
+    post.subject = self.request.get("subject")
+    post.content = self.request.get("content")
+
+    if post.subject and post.content:
+      post.put()
+      self.redirect("/%s" % str(post.key().id()))
+    else:
+      error = "we need both a title and some text!"
+      self.render("newpost.html", subject = subject, content = content, error = error)
+
+# class VoteUp(BaseHandler):
+#   def get(self, post_id):
+#     like_q = Likes.all().filter('post_id =', post_id).get()
+#     likes = Likes(post_id = int(post_id), like_count = 1)
+#     likes.put()
+#     self.redirect("/%s" % post_id)
 
     # post_id = post_id
     # likeObj = Likes('post_id =', post_id)
@@ -370,7 +387,7 @@ class VoteUp(BaseHandler):
 app = webapp2.WSGIApplication([
   ('/', Home),
   #('/newcomment', NewComment),
-  ('/voteup/([0-9]+)', VoteUp),
+  # ('/voteup/([0-9]+)', VoteUp),
   ('/newpost', NewPost ),
   ('/([0-9]+)', PostPage),
   ('/signup', Register),
