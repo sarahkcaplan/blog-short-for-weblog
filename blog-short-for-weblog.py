@@ -182,13 +182,9 @@ class PostPage(BaseHandler):
         self.error(404)
         return
 
-      like_key = db.Key.from_path('Likes', int(post_id), parent = likes_key())
-      likes = db.get(like_key)
-      # likes = Likes.all().filter('post_id =', post_id).get()
-
       comments = db.GqlQuery("SELECT * FROM Comment ORDER BY last_modified DESC LIMIT 10")
 
-      self.render("post.html", post = post, comments = comments, likes = likes, post_id = post_id)
+      self.render("post.html", post = post, comments = comments, post_id = post_id)
 
     else:
       self.redirect('/signup')
