@@ -26,20 +26,13 @@ def hash_str(s):
   return haslib.md5(s).hexdigest()
 
 def make_secure_val(val):
-  print "2. ~make_secure_val()~ val =", val+','
-  print "~make_secure_val()~ secure_val =",hmac.new(secret,val).hexdigest()
   return "%s|%s" % (val, hmac.new(secret,val).hexdigest())
 
 
 def check_secure_val(secure_val):
-  print "check_secure_val() 'secure_val'=", secure_val+','
   val = secure_val.split('|')[0]
-  print "check_secure_val 'val'=", val+','
   if secure_val == make_secure_val(val):
-    print "secure_val and make_secure_val are the same"
     return val
-  else:
-    print "This is why you need else statements"
 
 
 ## Commonly used functions
@@ -57,19 +50,12 @@ class BaseHandler(webapp2.RequestHandler):
 
   def set_secure_cookie(self, name, val):
     cookie_val = make_secure_val(val)
-    print "1. set_secure_cookie() 'make_secure_val(val)'=", make_secure_val(val)
-    print "set_secure_cookie() name =", name
-    print "set_secure_cookie() val =", val
-    print "set_secure_cookie() 'name, cookie_val'= ", name, cookie_val
     self.response.headers.add_header(
       'Set-Cookie',
       '%s=%s ; Path =/' % (name, cookie_val))
 
   def read_secure_cookie(self, name):
     cookie_val = self.request.cookies.get(name) #Returns user id, does not include hash (right???)
-    print "read_secure_cookie() name = :", name
-    print "read_secure_cookie() cookie_val = :",cookie_val+','
-    print "read_secure_cookie() return 'check_secure_val(cookie_val)'=",check_secure_val(cookie_val)
     return cookie_val and check_secure_val(cookie_val)
 
   def login(self, user):
@@ -80,12 +66,8 @@ class BaseHandler(webapp2.RequestHandler):
 
   def initialize(self, *a, **kw):
     webapp2.RequestHandler.initialize(self, *a, **kw)
-    print "***Init gets called***"
     uid = self.read_secure_cookie('user_id')
-    print "initialize() 'uid' = ", uid
     self.user = uid and User.by_id(int(uid))
-    print "initialize () 'self.user' = ", self.user
-    print "initialize () 'User.by_id' = ", User.by_id
 
 #### Begin blog code
 
