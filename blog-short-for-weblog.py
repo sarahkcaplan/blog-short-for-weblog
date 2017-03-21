@@ -55,7 +55,7 @@ class BaseHandler(webapp2.RequestHandler):
       '%s=%s ; Path =/' % (name, cookie_val))
 
   def read_secure_cookie(self, name):
-    cookie_val = self.request.cookies.get(name) #Returns user id, does not include hash (right???)
+    cookie_val = self.request.cookies.get(name)
     return cookie_val and check_secure_val(cookie_val)
 
   def login(self, user):
@@ -73,7 +73,7 @@ class BaseHandler(webapp2.RequestHandler):
 
 # Google Datastore entities for blog posts i.e. db tables
 class Post(db.Model):
-  # author = db.StringProperty(required = True)
+  author = db.StringProperty(required = True)
   subject = db.StringProperty(required = True)
   content = db.TextProperty(required = True)
   created = db.DateTimeProperty(auto_now_add = True)
@@ -124,11 +124,6 @@ class User(db.Model):
     if u and valid_pw(name, pw, u.pw_hash):
       return u
 
-  # @classmethod
-  # def post_like(cls, like, post_id):
-  #   l = cls.all().filter("post_id =", )
-  #   pass
-
 def blog_key(name = 'default'):
   return db.Key.from_path('blogs', name)
 
@@ -157,17 +152,12 @@ class NewPost(BaseHandler):
   def post(self):
     subject = self.request.get("subject")
     content = self.request.get("content")
-    # author = self.user
-
-    # print "NewPost post() 'author'=", author
-
+    author = str(self.user)
 
     if subject and content:
       # This is invoking a model class constructor using keyword arguments
-      p = Post(parent = blog_key(), subject = subject, content = content)
+      p = Post(parent = blog_key(), subject = subject, content = content, author = author, liked_by = [])
       p.put()
-      # l = Likes(parent = likes_key(), post_id = p.key().id())
-      # l.put()
 
       self.redirect("/%s" % str(p.key().id()))
     else:
@@ -179,11 +169,12 @@ class PostPage(BaseHandler):
   def get(self, post_id):
     post_key = db.Key.from_path('Post', int(post_id), parent =blog_key())
     post = db.get(post_key)
-
+    author = self.user
 
     if not post:
       self.error(404)
       return
+
 
     like_key = db.Key.from_path('Likes', int(post_id), parent = likes_key())
     likes = db.get(like_key)
