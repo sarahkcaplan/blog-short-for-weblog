@@ -152,7 +152,7 @@ class Home(BaseHandler):
 
 class NewPost(BaseHandler):
   def get(self):
-      self.render("newpost.html")
+    self.render("newpost.html")
 
   def post(self):
     subject = self.request.get("subject")
@@ -196,19 +196,19 @@ class PostPage(BaseHandler):
 
   def post(self, post_id, **value):
     if value:
-       post_like = Likes(parent = users_key(), like = True, post_id = post_id )
-       post_like.put()
+      post_like = Likes(parent = users_key(), like = True, post_id = post_id )
+      post_like.put()
     else:
-       post_like = Likes(parent = users_key(), like = False, post_id = post_id)
-       post_like.put()
+      post_like = Likes(parent = users_key(), like = False, post_id = post_id)
+      post_like.put()
 
     content = self.request.get("content")
 
     if content:
-       add_comment = Comment(parent = blog_key(), content = content)
-       add_comment.put()
+      add_comment = Comment(parent = blog_key(), content = content)
+      add_comment.put()
     else:
-       None
+      None
 
     self.redirect("/%s/edit" % post_id)
 
@@ -293,10 +293,10 @@ class Register(SignUp):
 # Blog welcome page after signup
 class Welcome(BaseHandler):
   def get(self):
-    # if self.user: # Need a better way to find out if they're logged in. THis doesn't do it
+    if self.user:
       self.render('welcome.html')
-    # else:
-    #   self.redirect('/signup')
+    else:
+      self.redirect('/signup')
 
 #Login handler
 class Login(BaseHandler):
