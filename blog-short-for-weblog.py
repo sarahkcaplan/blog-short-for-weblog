@@ -183,8 +183,9 @@ class PostPage(BaseHandler):
         return
 
       comments = db.GqlQuery("SELECT * FROM Comment ORDER BY last_modified DESC LIMIT 10")
+      likes = len(post.liked_by)
 
-      self.render("post.html", post = post, comments = comments, post_id = post_id)
+      self.render("post.html", post = post, likes = likes, comments = comments, post_id = post_id)
 
     else:
       self.redirect('/signup')
