@@ -80,6 +80,12 @@ class Post(db.Model):
   last_modified = db.DateTimeProperty(auto_now = True)
   liked_by = db.ListProperty(int)
 
+  @classmethod
+  def author_name():
+    uid = int(self.read_secure_cookie('user_id'))
+    user = User.by_id(uid)
+    return user.name
+
   def render(self):
     self._render_text = self.content.replace('\n', '<br>')
     return render_str("post.html", p = self)
@@ -159,7 +165,9 @@ class NewPost(BaseHandler):
     subject = self.request.get("subject")
     content = self.request.get("content")
     uid = int(self.read_secure_cookie('user_id'))
-    author = str(User.by_id(uid))
+    user = User.by_id(uid)
+    author = user.name
+    print "NewPOst author=",author
 
     if subject and content:
       # This is invoking a model class constructor using keyword arguments
@@ -183,21 +191,15 @@ class PostPage(BaseHandler):
         return
 
       comments = db.GqlQuery("SELECT * FROM Comment ORDER BY last_modified DESC LIMIT 10")
-      likes = len(post.liked_by)
 
-      self.render("post.html", post = post, likes = likes, comments = comments, post_id = post_id)
+      likes_count = len(post.liked_by)
+
+      self.render("post.html", post = post, likes_count = likes_count, comments = comments, post_id = post_id)
 
     else:
       self.redirect('/signup')
 
   def post(self, post_id, **value):
-    if value:
-      post_like = Likes(parent = users_key(), like = True, post_id = post_id )
-      post_like.put()
-    else:
-      post_like = Likes(parent = users_key(), like = False, post_id = post_id)
-      post_like.put()
-
     content = self.request.get("content")
 
     if content:
