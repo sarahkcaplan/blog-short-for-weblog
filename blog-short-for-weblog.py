@@ -26,14 +26,15 @@ def hash_str(s):
   return haslib.md5(s).hexdigest()
 
 def make_secure_val(val):
-  print "2. ~make_secure_val()~ val =", val
-  return "%s | %s" % (val, hmac.new(secret, val).hexdigest())
+  print "2. ~make_secure_val()~ val =", val+','
+  print "~make_secure_val()~ secure_val =",hmac.new(secret,val).hexdigest()
+  return "%s|%s" % (val, hmac.new(secret,val).hexdigest())
 
 
 def check_secure_val(secure_val):
-  print "check_secure_val() 'secure_val'=", secure_val
+  print "check_secure_val() 'secure_val'=", secure_val+','
   val = secure_val.split('|')[0]
-  print "check_secure_val 'val'=", val
+  print "check_secure_val 'val'=", val+','
   if secure_val == make_secure_val(val):
     print "secure_val and make_secure_val are the same"
     return val
@@ -48,6 +49,7 @@ class BaseHandler(webapp2.RequestHandler):
     self.response.write(*a, **kw)
 
   def render_str(self, template, **params):
+    params['user'] = self.user
     return render_str(template, **params)
 
   def render(self, template, **kw):
@@ -66,8 +68,8 @@ class BaseHandler(webapp2.RequestHandler):
   def read_secure_cookie(self, name):
     cookie_val = self.request.cookies.get(name) #Returns user id, does not include hash (right???)
     print "read_secure_cookie() name = :", name
-    print "read_secure_cookie() cookie_val = :", cookie_val
-    print "read_secure_cookie() return 'check_secure_val(cookie_val)'=", check_secure_val(cookie_val)
+    print "read_secure_cookie() cookie_val = :",cookie_val+','
+    print "read_secure_cookie() return 'check_secure_val(cookie_val)'=",check_secure_val(cookie_val)
     return cookie_val and check_secure_val(cookie_val)
 
   def login(self, user):
@@ -81,8 +83,9 @@ class BaseHandler(webapp2.RequestHandler):
     print "***Init gets called***"
     uid = self.read_secure_cookie('user_id')
     print "initialize() 'uid' = ", uid
-    self.user = uid and User.by_id(uid)
+    self.user = uid and User.by_id(int(uid))
     print "initialize () 'self.user' = ", self.user
+    print "initialize () 'User.by_id' = ", User.by_id
 
 #### Begin blog code
 
@@ -104,7 +107,7 @@ class Photo(db.Model):
   last_modified = db.DateTimeProperty(auto_now_add = True)
 
 class Comment(db.Model):
-  # author = db.StringProperty(required = True)
+  author = db.StringProperty(required = True)
   content = db.TextProperty(required = True)
   last_modified = db.DateTimeProperty(auto_now_add = True)
 
@@ -117,7 +120,7 @@ class User(db.Model):
 
   @classmethod
   def by_id(cls, uid):
-    return user.get_by_id(uid, parent = users_key())
+    return User.get_by_id(uid, parent = users_key())
 
 # This returns the db entry for a user by name
   @classmethod
@@ -167,18 +170,22 @@ class Home(BaseHandler):
 
 class NewPost(BaseHandler):
   def get(self):
-    self.render("newpost.html")
+      self.render("newpost.html")
 
   def post(self):
     subject = self.request.get("subject")
     content = self.request.get("content")
+    # author = self.user
+
+    # print "NewPost post() 'author'=", author
+
 
     if subject and content:
       # This is invoking a model class constructor using keyword arguments
       p = Post(parent = blog_key(), subject = subject, content = content)
       p.put()
-      l = Likes(parent = likes_key(), post_id = p.key().id())
-      l.put()
+      # l = Likes(parent = likes_key(), post_id = p.key().id())
+      # l.put()
 
       self.redirect("/%s" % str(p.key().id()))
     else:
@@ -299,15 +306,15 @@ class Register(SignUp):
       u.put()
 
       self.login(u)
-      self.redirect('/newpost')
+      self.redirect('/welcome')
 
 # Blog welcome page after signup
 class Welcome(BaseHandler):
   def get(self):
-    if self.user:
+    # if self.user: # Need a better way to find out if they're logged in. THis doesn't do it
       self.render('welcome.html')
-    else:
-      self.redirect('/signup')
+    # else:
+    #   self.redirect('/signup')
 
 #Login handler
 class Login(BaseHandler):
