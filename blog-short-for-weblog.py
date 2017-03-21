@@ -140,14 +140,20 @@ def render_post(response, post):
 
 class Home(BaseHandler):
   def get(self):
-    posts = db.GqlQuery("SELECT * FROM Post ORDER BY last_modified DESC LIMIT 10")
-    self.render("home.html", posts = posts)
+    if self.user:
+      posts = db.GqlQuery("SELECT * FROM Post ORDER BY last_modified DESC LIMIT 10")
+      self.render("home.html", posts = posts)
+    else:
+      self.redirect('/signup')
 
 # Page for creating new posts. Successful post redirects to post's permalink location.
 
 class NewPost(BaseHandler):
   def get(self):
-    self.render("newpost.html")
+    if self.user:
+      self.render("newpost.html")
+    else:
+      self.redirect('/signup')
 
   def post(self):
     subject = self.request.get("subject")
@@ -167,23 +173,25 @@ class NewPost(BaseHandler):
 # Handler for post's pages. Defines post's db key for URI. (?? Or maybe gets post_id from URI or both??)
 class PostPage(BaseHandler):
   def get(self, post_id):
-    post_key = db.Key.from_path('Post', int(post_id), parent =blog_key())
-    post = db.get(post_key)
-    author = self.user
+    if self.user:
+      post_key = db.Key.from_path('Post', int(post_id), parent =blog_key())
+      post = db.get(post_key)
 
-    if not post:
-      self.error(404)
-      return
-
-
-    like_key = db.Key.from_path('Likes', int(post_id), parent = likes_key())
-    likes = db.get(like_key)
-    # likes = Likes.all().filter('post_id =', post_id).get()
-
-    comments = db.GqlQuery("SELECT * FROM Comment ORDER BY last_modified DESC LIMIT 10")
+      if not post:
+        self.error(404)
+        return
 
 
-    self.render("post.html", post = post, comments = comments, likes = likes, post_id = post_id)
+      like_key = db.Key.from_path('Likes', int(post_id), parent = likes_key())
+      likes = db.get(like_key)
+      # likes = Likes.all().filter('post_id =', post_id).get()
+
+      comments = db.GqlQuery("SELECT * FROM Comment ORDER BY last_modified DESC LIMIT 10")
+
+
+      self.render("post.html", post = post, comments = comments, likes = likes, post_id = post_id)
+    else:
+      self.redirect('/signup')
 
   def post(self, post_id, **value):
     if value:
@@ -315,14 +323,17 @@ class Logout(BaseHandler):
 
 class EditPost(BaseHandler):
   def get(self, post_id):
-    key = db.Key.from_path('Post', int(post_id), parent =blog_key())
-    post = db.get(key)
+    if self.user:
+      key = db.Key.from_path('Post', int(post_id), parent =blog_key())
+      post = db.get(key)
 
-    if not post:
-      self.error(404)
-      return
+      if not post:
+        self.error(404)
+        return
 
-    self.render("editpost.html", post = post)
+      self.render("editpost.html", post = post)
+    else:
+      self.redirect('/signup')
 
   def post(self, post_id):
     key = db.Key.from_path('Post', int(post_id), parent =blog_key())
