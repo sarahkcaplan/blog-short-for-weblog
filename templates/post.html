@@ -2,14 +2,16 @@
 	<h1>A Blog Post.</h1>
 	<div <!-- class= "title" -->{{post.subject}}</div>
 	<div <!-- class= "entry">{{post.content}}</div>
-	<div <!-- class ="like">Likes: {{likes}}</div>
+	<div <!-- class ="like">Likes: {{likes_count}}</div>
 	<a href="/voteup/{{post_id}}" >LIKE</a>
-	<form method ="post" action='/newcomment'>
+	<br>
+	<a href="/votedown/{{post_id}}"> DISLIKE </a>
+	<form method ="POST">
 		<div <!-- class="comments" -->
 			<p>Leave a Comment</p>
 			<textarea name="content"></textarea>
 		{% for comment in comments %}
-	<!-- 		<div class= "author">{{comment.author}}</div> -->
+			<div class= "author">{{comment.author}}</div>
 			<div>{{comment.content}}</div>
 			<div <!-- class= "date_time" -->>{{comment.last_modified}}</div>
 		{% endfor %}

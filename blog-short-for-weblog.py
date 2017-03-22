@@ -97,6 +97,7 @@ class Photo(db.Model):
 
 class Comment(db.Model):
   author = db.StringProperty(required = True)
+  post_id = db.StringProperty(required = True)
   content = db.TextProperty(required = True)
   last_modified = db.DateTimeProperty(auto_now_add = True)
 
@@ -179,7 +180,21 @@ class NewPost(BaseHandler):
       error = "we need both a title and some text!"
       self.render("newpost.html", subject = subject, content = content, error = error)
 
-class Comment
+# class Comment(BaseHandler):
+#   def get(self, post_id):
+#     content = self.request.get("content")
+#     post_key = db.Key.from_path('Post', int(post_id), parent =blog_key())
+#     post = db.get(post_key)
+
+#     uid = int(self.read_secure_cookie('user_id'))
+#     user = User.by_id(uid)
+#     author = str(user.name)
+
+#     comment = Comment(author = author, post_id = post_id, content = content)
+#     comment.put()
+
+#     self.redirect("/%s" % str(post.key().id()))
+
 
 # Handler for post's pages. Defines post's db key for URI. (?? Or maybe gets post_id from URI or both??)
 class PostPage(BaseHandler):
@@ -204,17 +219,21 @@ class PostPage(BaseHandler):
     else:
       self.redirect('/signup')
 
-  def post(self, post_id, **value):
+  def post(self, post_id):
     content = self.request.get("content")
 
     if content:
-      add_comment = Comment(parent = blog_key(), content = content)
-      add_comment.put()
-    else:
-      None
+      post_key = db.Key.from_path('Post', int(post_id), parent =blog_key())
+      post = db.get(post_key)
 
-    self.redirect("/%s/edit" % post_id)
+      uid = int(self.read_secure_cookie('user_id'))
+      user = User.by_id(uid)
+      author = str(user.name)
 
+      comment = Comment(author = author, post_id = post_id, content = content)
+      comment.put()
+
+      self.redirect("/%s" % str(post.key().id()))
 
 #making and using salts
 def make_salt():
@@ -381,7 +400,7 @@ class VoteDown(BaseHandler):
 # URI to Handler mapping
 app = webapp2.WSGIApplication([
   ('/', Home),
-  ('/newcomment', NewComment),
+  # ('/comment', Comment),
   ('/voteup/([0-9]+)', VoteUp),
   ('/votedown/([0-9]+)', VoteDown),
   ('/newpost', NewPost ),
