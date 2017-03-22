@@ -179,6 +179,8 @@ class NewPost(BaseHandler):
       error = "we need both a title and some text!"
       self.render("newpost.html", subject = subject, content = content, error = error)
 
+class Comment
+
 # Handler for post's pages. Defines post's db key for URI. (?? Or maybe gets post_id from URI or both??)
 class PostPage(BaseHandler):
   def get(self, post_id):
@@ -362,39 +364,26 @@ class VoteUp(BaseHandler):
 
     self.redirect("/%s" % str(post.key().id()))
 
+class VoteDown(BaseHandler):
+  def get(self, post_id):
+    uid = int(self.read_secure_cookie('user_id'))
 
-# class VoteUp(BaseHandler):
-#   def get(self, post_id):
-#     like_q = Likes.all().filter('post_id =', post_id).get()
-#     likes = Likes(post_id = int(post_id), like_count = 1)
-#     likes.put()
-#     self.redirect("/%s" % post_id)
+    key = db.Key.from_path('Post', int(post_id), parent =blog_key())
+    post = db.get(key)
 
-    # post_id = post_id
-    # likeObj = Likes('post_id =', post_id)
-    # likeObj.like_count
+    liked_by_position = post.liked_by.index(uid)
+    del post.liked_by[liked_by_position]
 
+    post.put()
 
-# class VoteUp(BaseHandler):
-#   def get(self, post_id):
-#     1. fetch the post by id #<a href='/voteup/123123'>Like</a>
-#     2. fetch the likeObj by post_id
-#     3. check if the logged in user is the author of the post
-#     4. liked_by = likeObj.liked_by
-#     5. for l in liked_by:
-#           if l == self.user.key().id():
-#             Dont allow
-#             and return to postpage
-#       liked_by.append(self.user.key().id())
-#       likeObj.like_count+=1
-#     redirect to postpage handler
+    self.redirect("/%s" % str(post.key().id()))
 
 # URI to Handler mapping
 app = webapp2.WSGIApplication([
   ('/', Home),
-  # ('/newcomment', NewComment),
+  ('/newcomment', NewComment),
   ('/voteup/([0-9]+)', VoteUp),
-  # ('/votedown/([0-9]+)', VoteDown),
+  ('/votedown/([0-9]+)', VoteDown),
   ('/newpost', NewPost ),
   ('/([0-9]+)', PostPage),
   ('/signup', Register),
