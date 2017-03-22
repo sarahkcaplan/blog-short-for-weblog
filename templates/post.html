@@ -2,8 +2,12 @@
 	<h1>A Blog Post.</h1>
 	<div <!-- class= "title" -->{{post.subject}}</div>
 	<div <!-- class= "entry">{{post.content}}</div>
-	<div <!-- class ="like">Likes: {{likes}}</div>
-	<a href="/voteup/{{post_id}}" >LIKE</a>
+	<div <!-- class ="like">Likes: {{likes_count}}</div>
+		{% if current_user == post.author %}
+			<br>
+		{% elif current_user != post.author %}
+			<a href='/voteup/([0-9]+)'>LIKE</a>
+		{% endif %}
 	<form method ="post" action='/newcomment'>
 		<div <!-- class="comments" -->
 			<p>Leave a Comment</p>

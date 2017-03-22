@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block content %}
+{% block section %}
 	<h1>Welcome to Blog: Short for Weblog</h1>
 	<h2>Here are our latest posts!</h2>
 	<br>
@@ -9,6 +9,6 @@
 		<div class= "post">{{post.content}}</div>
 	{% endfor %}
 	<div class= "button">
-		<a href ="https://blog-short-for-weblog.appspot.com/newpost">New Entry
+		<a href ="/newpost">New Entry
 	</div>
 {% endblock %}
