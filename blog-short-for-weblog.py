@@ -196,19 +196,28 @@ class PostPage(BaseHandler):
     if self.user:
       post_key = db.Key.from_path('Post', int(post_id), parent =blog_key())
       post = db.get(post_key)
+
       uid = int(self.read_secure_cookie('user_id'))
       user = User.by_id(uid)
       current_user = str(user.name)
+
+
+
+      if uid in post.liked_by:
+        liking_user = uid
+      else:
+        liking_user = None
+
 
       if not post:
         self.error(404)
         return
 
-      post_comments = db.GqlQuery("SELECT * FROM Comments ORDER BY last_modified DESC LIMIT 10")
+      comments = db.GqlQuery("SELECT * FROM Comments WHERE post_id = 'post_id' ORDER BY last_modified DESC LIMIT 10")
 
       likes_count = len(post.liked_by)
 
-      self.render("post.html", current_user = current_user, post = post, likes_count = likes_count, post_comments = post_comments, post_id = post_id)
+      self.render("post.html", liking_user = liking_user, current_user = current_user, post = post, likes_count = likes_count, comments = comments, post_id = post_id)
 
     else:
       self.redirect('/signup')
@@ -224,35 +233,11 @@ class Comment(BaseHandler):
     user = User.by_id(uid)
     author = str(user.name)
 
-    comment = Comments(parent = comment_key(), author = author, content = content, post_id = post_id)
-    # comment.author = author
-    # comment.content = content
-    # comment.post_id = post_id
-    comment.put()
+    post_comment = Comments(parent = comment_key(), author = author, content = content, post_id = post_id)
+    post_comment.put()
 
     self.redirect("/%s" % str(post.key().id()))
 
-  # def post(self, post_id, **value):
-  #   content = self.request.get("content")
-
-  #   if content:
-  #     post_key = db.Key.from_path('Post', int(post_id), parent =blog_key())
-  #     post = db.get(post_key)
-
-  #     add_comment = Comment(parent = blog_key(), content = content)
-  #     add_comment.put()
-
-  #     uid = int(self.read_secure_cookie('user_id'))
-  #     user = User.by_id(uid)
-  #     author = str(user.name)
-
-  #     comment = Comment(author = author, post_id = post_id, content = content)
-  #     comment.put()
-
-  #     self.redirect("/%s" % str(post.key().id()))
-
-  #   else:
-  #        None
 
 #making and using salts
 def make_salt():
@@ -393,6 +378,8 @@ class VoteUp(BaseHandler):
   def get(self, post_id):
     key = db.Key.from_path('Post', int(post_id), parent =blog_key())
     post = db.get(key)
+
+    uid = int(self.read_secure_cookie('user_id'))
 
     post.liked_by += [uid]
     post.put()

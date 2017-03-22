@@ -6,19 +6,26 @@
 		{% if current_user == post.author %}
 			<br>
 		{% elif current_user != post.author %}
-		<a href="/voteup/{{post_id}}" >LIKE</a>
+			{% if liking_user %}
+				<a href="/votedown/{{post_id}}"> DISLIKE </a>
+			{% else %}
+				<a href="/voteup/{{post_id}}" >LIKE</a>
+			{% endif %}
 		<br>
-		<a href="/votedown/{{post_id}}"> DISLIKE </a>
 		{% endif %}
+	<hr>
+	{% if current_user == post.author %}
+		<a href="/{{post_id}}/edit">Edit Post</a>
+	{% endif %}
 
 	<form method ="post" action="/comment/{{post_id}}">
 		<div <!-- class="comments" -->
 			<p>Leave a Comment</p>
 			<textarea name="content"></textarea>
-		{% for post_comment in post_comments %}
-			<div class= "author">{{post_comment.author}}</div>
-			<div>{{post_comment.content}}</div>
-			<div class= "date_time"> {{post_comment.last_modified}}</div>
+		{% for comment in comments %}
+			<div class= "author">{{comment.author}}</div>
+			<div>{{comment.content}}</div>
+			<div class= "date_time"> {{comment.last_modified}}</div>
 		{% endfor %}
 		</div>
 		<input type="submit">
