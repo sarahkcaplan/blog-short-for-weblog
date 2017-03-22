@@ -3,10 +3,14 @@
 	<div <!-- class= "title" -->{{post.subject}}</div>
 	<div <!-- class= "entry">{{post.content}}</div>
 	<div <!-- class ="like">Likes: {{likes_count}}</div>
-	<a href="/voteup/{{post_id}}" >LIKE</a>
-	<br>
-	<a href="/votedown/{{post_id}}"> DISLIKE </a>
-	<form method ="POST">
+		{% if current_user == post.author %}
+			<br>
+		{% elif current_user != post.author %}
+		<a href="/voteup/{{post_id}}" >LIKE</a>
+		<br>
+		<a href="/votedown/{{post_id}}"> DISLIKE </a>
+		{% endif %}
+	<form method ="post">
 		<div <!-- class="comments" -->
 			<p>Leave a Comment</p>
 			<textarea name="content"></textarea>

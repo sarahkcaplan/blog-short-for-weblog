@@ -28,12 +28,29 @@ def hash_str(s):
 def make_secure_val(val):
   return "%s|%s" % (val, hmac.new(secret,val).hexdigest())
 
+## Commonly used functions
+#Hashing functions
+def hash_str(s):
+  return haslib.md5(s).hexdigest()
+
+def make_secure_val(val):
+  return "%s|%s" % (val, hmac.new(secret,val).hexdigest())
+
 
 def check_secure_val(secure_val):
   val = secure_val.split('|')[0]
   if secure_val == make_secure_val(val):
     return val
 
+def check_secure_val(secure_val):
+  val = secure_val.split('|')[0]
+  if secure_val == make_secure_val(val):
+    return val
+
+
+## Commonly used functions
+# The class "BaseHandler" is-a "webapp2.RequestHandler"
+# The class has eight functions definied within it
 
 ## Commonly used functions
 class BaseHandler(webapp2.RequestHandler):
@@ -79,13 +96,6 @@ class Post(db.Model):
   created = db.DateTimeProperty(auto_now_add = True)
   last_modified = db.DateTimeProperty(auto_now = True)
   liked_by = db.ListProperty(int)
-
-
-  # @classmethod
-  # def author_name(cls):
-  #   uid = self.read_secure_cookie('user_id')
-  #   user = User.get_by_id(uid, parent = users_key())
-  #   return str(user.name)
 
   def render(self):
     self._render_text = self.content.replace('\n', '<br>')
@@ -219,12 +229,15 @@ class PostPage(BaseHandler):
     else:
       self.redirect('/signup')
 
-  def post(self, post_id):
+  def post(self, post_id, **value):
     content = self.request.get("content")
 
     if content:
       post_key = db.Key.from_path('Post', int(post_id), parent =blog_key())
       post = db.get(post_key)
+
+      add_comment = Comment(parent = blog_key(), content = content)
+      add_comment.put()
 
       uid = int(self.read_secure_cookie('user_id'))
       user = User.by_id(uid)
@@ -234,6 +247,9 @@ class PostPage(BaseHandler):
       comment.put()
 
       self.redirect("/%s" % str(post.key().id()))
+
+    else:
+         None
 
 #making and using salts
 def make_salt():
@@ -295,8 +311,6 @@ class SignUp(BaseHandler):
       self.render('signup.html', **params)
     else:
       self.done()
-
-
 
 # Register handler
 class Register(SignUp):
@@ -371,10 +385,8 @@ class EditPost(BaseHandler):
       error = "we need both a title and some text!"
       self.render("newpost.html", subject = subject, content = content, error = error)
 
-class VoteUp(BaseHandler):
-  def get(self, post_id):
-    uid = int(self.read_secure_cookie('user_id'))
 
+class VoteUp(BaseHandler):
     key = db.Key.from_path('Post', int(post_id), parent =blog_key())
     post = db.get(key)
 
