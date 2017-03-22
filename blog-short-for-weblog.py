@@ -80,11 +80,11 @@ class Post(db.Model):
   last_modified = db.DateTimeProperty(auto_now = True)
   liked_by = db.ListProperty(int)
 
-  @classmethod
-  def author_name():
-    uid = int(self.read_secure_cookie('user_id'))
-    user = User.by_id(uid)
-    return user.name
+  # @classmethod
+  # def author_name(cls):
+  #   uid = self.read_secure_cookie('user_id')
+  #   user = User.get_by_id(uid, parent = users_key())
+  #   return str(user.name)
 
   def render(self):
     self._render_text = self.content.replace('\n', '<br>')
@@ -166,8 +166,7 @@ class NewPost(BaseHandler):
     content = self.request.get("content")
     uid = int(self.read_secure_cookie('user_id'))
     user = User.by_id(uid)
-    author = user.name
-    print "NewPOst author=",author
+    author = str(user.name)
 
     if subject and content:
       # This is invoking a model class constructor using keyword arguments
@@ -185,6 +184,9 @@ class PostPage(BaseHandler):
     if self.user:
       post_key = db.Key.from_path('Post', int(post_id), parent =blog_key())
       post = db.get(post_key)
+      uid = int(self.read_secure_cookie('user_id'))
+      user = User.by_id(uid)
+      current_user = str(user.name)
 
       if not post:
         self.error(404)
@@ -194,7 +196,7 @@ class PostPage(BaseHandler):
 
       likes_count = len(post.liked_by)
 
-      self.render("post.html", post = post, likes_count = likes_count, comments = comments, post_id = post_id)
+      self.render("post.html", current_user = current_user, post = post, likes_count = likes_count, comments = comments, post_id = post_id)
 
     else:
       self.redirect('/signup')
