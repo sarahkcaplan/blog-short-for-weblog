@@ -389,5 +389,3 @@ app = webapp2.WSGIApplication([
   ('/([0-9]+)/edit', EditPost)
   ],
   debug=True)
-
-
