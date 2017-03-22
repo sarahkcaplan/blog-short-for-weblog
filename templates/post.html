@@ -10,14 +10,15 @@
 		<br>
 		<a href="/votedown/{{post_id}}"> DISLIKE </a>
 		{% endif %}
-	<form method ="post">
+
+	<form method ="post" action="/comment/{{post_id}}">
 		<div <!-- class="comments" -->
 			<p>Leave a Comment</p>
 			<textarea name="content"></textarea>
-		{% for comment in comments %}
-			<div class= "author">{{comment.author}}</div>
-			<div>{{comment.content}}</div>
-			<div <!-- class= "date_time" -->>{{comment.last_modified}}</div>
+		{% for post_comment in post_comments %}
+			<div class= "author">{{post_comment.author}}</div>
+			<div>{{post_comment.content}}</div>
+			<div class= "date_time"> {{post_comment.last_modified}}</div>
 		{% endfor %}
 		</div>
 		<input type="submit">

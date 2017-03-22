@@ -101,11 +101,7 @@ class Post(db.Model):
     self._render_text = self.content.replace('\n', '<br>')
     return render_str("post.html", p = self)
 
-class Photo(db.Model):
-  title = db.StringProperty(required = True)
-  last_modified = db.DateTimeProperty(auto_now_add = True)
-
-class Comment(db.Model):
+class Comments(db.Model):
   author = db.StringProperty(required = True)
   post_id = db.StringProperty(required = True)
   content = db.TextProperty(required = True)
@@ -151,6 +147,9 @@ def users_key(group = 'default'):
 def likes_key(group = 'default'):
   return db.Key.from_path('likes', group)
 
+def comment_key(group = 'default'):
+  return db.Key.from_path('comment', group)
+
 # Blog post formatting
 def render_post(response, post):
   response.write('<b>' + post.subject + '</b><br>')
@@ -190,21 +189,6 @@ class NewPost(BaseHandler):
       error = "we need both a title and some text!"
       self.render("newpost.html", subject = subject, content = content, error = error)
 
-# class Comment(BaseHandler):
-#   def get(self, post_id):
-#     content = self.request.get("content")
-#     post_key = db.Key.from_path('Post', int(post_id), parent =blog_key())
-#     post = db.get(post_key)
-
-#     uid = int(self.read_secure_cookie('user_id'))
-#     user = User.by_id(uid)
-#     author = str(user.name)
-
-#     comment = Comment(author = author, post_id = post_id, content = content)
-#     comment.put()
-
-#     self.redirect("/%s" % str(post.key().id()))
-
 
 # Handler for post's pages. Defines post's db key for URI. (?? Or maybe gets post_id from URI or both??)
 class PostPage(BaseHandler):
@@ -220,36 +204,55 @@ class PostPage(BaseHandler):
         self.error(404)
         return
 
-      comments = db.GqlQuery("SELECT * FROM Comment ORDER BY last_modified DESC LIMIT 10")
+      post_comments = db.GqlQuery("SELECT * FROM Comments ORDER BY last_modified DESC LIMIT 10")
 
       likes_count = len(post.liked_by)
 
-      self.render("post.html", current_user = current_user, post = post, likes_count = likes_count, comments = comments, post_id = post_id)
+      self.render("post.html", current_user = current_user, post = post, likes_count = likes_count, post_comments = post_comments, post_id = post_id)
 
     else:
       self.redirect('/signup')
 
-  def post(self, post_id, **value):
+class Comment(BaseHandler):
+  def post (self, post_id):
     content = self.request.get("content")
 
-    if content:
-      post_key = db.Key.from_path('Post', int(post_id), parent =blog_key())
-      post = db.get(post_key)
+    post_key = db.Key.from_path('Post', int(post_id), parent =blog_key())
+    post = db.get(post_key)
 
-      add_comment = Comment(parent = blog_key(), content = content)
-      add_comment.put()
+    uid = int(self.read_secure_cookie('user_id'))
+    user = User.by_id(uid)
+    author = str(user.name)
 
-      uid = int(self.read_secure_cookie('user_id'))
-      user = User.by_id(uid)
-      author = str(user.name)
+    comment = Comments(parent = comment_key(), author = author, content = content, post_id = post_id)
+    # comment.author = author
+    # comment.content = content
+    # comment.post_id = post_id
+    comment.put()
 
-      comment = Comment(author = author, post_id = post_id, content = content)
-      comment.put()
+    self.redirect("/%s" % str(post.key().id()))
 
-      self.redirect("/%s" % str(post.key().id()))
+  # def post(self, post_id, **value):
+  #   content = self.request.get("content")
 
-    else:
-         None
+  #   if content:
+  #     post_key = db.Key.from_path('Post', int(post_id), parent =blog_key())
+  #     post = db.get(post_key)
+
+  #     add_comment = Comment(parent = blog_key(), content = content)
+  #     add_comment.put()
+
+  #     uid = int(self.read_secure_cookie('user_id'))
+  #     user = User.by_id(uid)
+  #     author = str(user.name)
+
+  #     comment = Comment(author = author, post_id = post_id, content = content)
+  #     comment.put()
+
+  #     self.redirect("/%s" % str(post.key().id()))
+
+  #   else:
+  #        None
 
 #making and using salts
 def make_salt():
@@ -387,6 +390,7 @@ class EditPost(BaseHandler):
 
 
 class VoteUp(BaseHandler):
+  def get(self, post_id):
     key = db.Key.from_path('Post', int(post_id), parent =blog_key())
     post = db.get(key)
 
@@ -412,7 +416,7 @@ class VoteDown(BaseHandler):
 # URI to Handler mapping
 app = webapp2.WSGIApplication([
   ('/', Home),
-  # ('/comment', Comment),
+  ('/comment/([0-9]+)', Comment),
   ('/voteup/([0-9]+)', VoteUp),
   ('/votedown/([0-9]+)', VoteDown),
   ('/newpost', NewPost ),
