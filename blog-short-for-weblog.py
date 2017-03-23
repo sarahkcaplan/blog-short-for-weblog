@@ -198,7 +198,8 @@ class PostPage(BaseHandler):
         self.error(404)
         return
 
-      comments = db.GqlQuery("SELECT * FROM Comments WHERE post_id = 'post_id' ORDER BY last_modified DESC LIMIT 10")
+      comments = Comments.all().order("-last_modified")
+      comments.filter("post_id =", post_id)
 
       likes_count = len(post.liked_by)
 
@@ -223,6 +224,31 @@ class Comment(BaseHandler):
 
     self.redirect("/%s" % str(post.key().id()))
 
+class EditComment(BaseHandler):
+  def get(self, post_id):
+    content = self.request.get("content")
+
+    self.render('editcomment.html', post_id = post_id, comment = comment)
+
+  def post (self, post_id):
+    content = self.request.get("content")
+
+    comment = Comment.get_by_id(int(comment_id))
+
+    uid = int(self.read_secure_cookie('user_id'))
+    user = User.by_id(uid)
+    author = str(user.name)
+
+    comment.content = content
+    content.put()
+
+    self.redirect("/%s" % str(post.key().id()))
+
+class DeleteComment(BaseHandler):
+  def get(self, post_id, comment_id):
+    comment = Comment.get_by_id(int(comment_id))
+    del comment
+    self.redirect("/%s" % str(post.key().id()))
 
 #making and using salts
 def make_salt(length = 5):
@@ -397,6 +423,8 @@ class VoteDown(BaseHandler):
 app = webapp2.WSGIApplication([
   ('/', Home),
   ('/comment/([0-9]+)', Comment),
+  ('/comment/([0-9]+)/edit', EditComment),
+  ('/comment/([0-9]+)/delete', DeleteComment),
   ('/voteup/([0-9]+)', VoteUp),
   ('/votedown/([0-9]+)', VoteDown),
   ('/newpost', NewPost ),
