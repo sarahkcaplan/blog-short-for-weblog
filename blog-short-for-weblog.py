@@ -21,13 +21,6 @@ def render_str(template, **params):
   t = jinja_env.get_template(template)
   return t.render(params)
 
-#Hashing functions
-def hash_str(s):
-  return haslib.md5(s).hexdigest()
-
-def make_secure_val(val):
-  return "%s|%s" % (val, hmac.new(secret,val).hexdigest())
-
 ## Commonly used functions
 #Hashing functions
 def hash_str(s):
@@ -36,11 +29,6 @@ def hash_str(s):
 def make_secure_val(val):
   return "%s|%s" % (val, hmac.new(secret,val).hexdigest())
 
-
-def check_secure_val(secure_val):
-  val = secure_val.split('|')[0]
-  if secure_val == make_secure_val(val):
-    return val
 
 def check_secure_val(secure_val):
   val = secure_val.split('|')[0]
@@ -201,13 +189,10 @@ class PostPage(BaseHandler):
       user = User.by_id(uid)
       current_user = str(user.name)
 
-
-
       if uid in post.liked_by:
         liking_user = uid
       else:
         liking_user = None
-
 
       if not post:
         self.error(404)
@@ -240,19 +225,18 @@ class Comment(BaseHandler):
 
 
 #making and using salts
-def make_salt():
-    salt = random.sample(string.hexdigits,5)
-    return string.join(salt,'')
+def make_salt(length = 5):
+    return ''.join(random.SystemRandom().choice(string.ascii_letters) for x in range(length))
 
-def make_pw_hash(username, password, salt = None):
-    if not salt:
-      salt = make_salt()
-    h = hashlib.sha256(username + password + salt).hexdigest()
-    return "%s, %s" % (h, salt)
+def make_pw_hash(name, pw, salt = None):
+  if not salt:
+    salt = make_salt()
+  h = hashlib.sha256(name + pw + salt).hexdigest()
+  return "%s,%s" % (salt,h)
 
-def valid_pw(name, pw, h):
-  salt = h.split(',')[1]
-  return h == make_pw_hash(username, password, salt)
+def valid_pw(name, password, h):
+  salt = h.split(',')[0]
+  return h == make_pw_hash(name, password, salt)
 
 #Blog sign up
 USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
@@ -346,6 +330,15 @@ class Logout(BaseHandler):
     self.logout()
     self.redirect('/signup')
 
+class DeletePost(BaseHandler):
+  def get(self, post_id):
+    key = db.Key.from_path('Post', int(post_id), parent =blog_key())
+    post = db.get(key)
+
+    del post
+
+    self.redirect('/')
+
 class EditPost(BaseHandler):
   def get(self, post_id):
     if self.user:
@@ -408,6 +401,7 @@ app = webapp2.WSGIApplication([
   ('/votedown/([0-9]+)', VoteDown),
   ('/newpost', NewPost ),
   ('/([0-9]+)', PostPage),
+  ('/deletepost/([0-9]+)', DeletePost),
   ('/signup', Register),
   ('/welcome', Welcome),
   ('/login', Login),
