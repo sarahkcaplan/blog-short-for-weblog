@@ -30,6 +30,8 @@
 		</div>
 		<input type="submit">
 	</form>
-	<a href="/deletepost/{{post_id}}">Delete Post</a>
+	{% if current_user == post.author %
+		<a href="/deletepost/{{post_id}}">Delete Post</a>
+	{% endif %}
 
 
