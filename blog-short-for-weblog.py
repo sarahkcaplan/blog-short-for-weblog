@@ -226,16 +226,15 @@ class NewComment(BaseHandler):
       comment_id = comment.key().id()
       print "comment_id",comment_id
 
-      self.redirect("/comment/%s/%s") % str(post_id), str(comment_id)
+      self.redirect("/%s/%s" % (post_id, comment_id))
 
 class Comment(BaseHandler):
   def get (self, post_id, comment_id):
     if self.user:
-      comment_key = db.Key.from_path('Comments', int(comment_id), parent =comment_key())
-      comment = db.get(comment_key)
+      c_key = db.Key.from_path('Comments', int(comment_id), parent= comment_key())
+      comment = db.get(c_key)
 
-      self.render("comment.html" comment=comment)
-
+      self.render("comment.html", comment = comment, post_id = post_id)
 
 
 class EditComment(BaseHandler):
@@ -434,8 +433,8 @@ class VoteDown(BaseHandler):
 # URI to Handler mapping
 app = webapp2.WSGIApplication([
   ('/', Home),
-  ('/comment/([0-9]+)/([0-9]+)', comment)
-  ('/comment/([0-9]+)/newcomment', NewComment),
+  ('/([0-9]+)/([0-9]+)', Comment),
+  ('/([0-9]+)/newcomment', NewComment),
   ('/comment/([0-9]+)/edit', EditComment),
   ('/comment/([0-9]+)/delete', DeleteComment),
   ('/voteup/([0-9]+)', VoteUp),
