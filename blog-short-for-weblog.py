@@ -208,12 +208,26 @@ class PostPage(BaseHandler):
     else:
       self.redirect('/signup')
 
+class NewComment(BaseHandler):
+  def get(self, post_id, comment_id):
+
+    self.render('newcomment.html')
+
+  def post(self, post_id, comment_id):
+    content = self.request.get("content")
+
+    uid = int(self.read_secure_cookie('user_id'))
+    user = User.by_id(uid)
+    author = str(user.name)
+
+    comment = Comments(parent = comment_key(), author = author, content = content, post_id = post_id)
+    comment_id = comment.key().id()
+    print "comment_id",comment_id
+
+
 class Comment(BaseHandler):
   def post (self, post_id):
     content = self.request.get("content")
-
-    post_key = db.Key.from_path('Post', int(post_id), parent =blog_key())
-    post = db.get(post_key)
 
     uid = int(self.read_secure_cookie('user_id'))
     user = User.by_id(uid)
@@ -228,26 +242,24 @@ class EditComment(BaseHandler):
   def get(self, post_id):
     content = self.request.get("content")
 
-    self.render('editcomment.html', post_id = post_id, comment = comment)
+    self.render('editcomment.html', post_id = post_id, content = content)
 
   def post (self, post_id):
     content = self.request.get("content")
 
-    comment = Comment.get_by_id(int(comment_id))
-
-    uid = int(self.read_secure_cookie('user_id'))
-    user = User.by_id(uid)
-    author = str(user.name)
-
-    comment.content = content
-    content.put()
+    comment = Comments.all().filter("post_id =", post_id)
+    spec_comment = comment.filter("content =", content)
+    spec_comment.content = content
 
     self.redirect("/%s" % str(post.key().id()))
 
 class DeleteComment(BaseHandler):
-  def get(self, post_id, comment_id):
-    comment = Comment.get_by_id(int(comment_id))
-    del comment
+  def get(self, post_id):
+    content = self.request.get("content")
+    comment = Comments.all().filter("post_id =", post_id)
+    spec_comment = comment.filter("content =", content)
+    del sepc_comment
+
     self.redirect("/%s" % str(post.key().id()))
 
 #making and using salts
