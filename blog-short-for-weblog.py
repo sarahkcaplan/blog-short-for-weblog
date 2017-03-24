@@ -234,23 +234,24 @@ class Comment(BaseHandler):
       c_key = db.Key.from_path('Comments', int(comment_id), parent= comment_key())
       comment = db.get(c_key)
 
-      self.render("comment.html", comment = comment, post_id = post_id)
+      self.render("comment.html", comment = comment, post_id = post_id, comment_id = comment_id)
 
 
 class EditComment(BaseHandler):
-  def get(self, post_id):
+  def get(self, post_id, comment_id):
+    if self.user:
+      c_key = db.Key.from_path('Comments', int(comment_id), parent= comment_key())
+      comment = db.get(c_key)
+
+      self.render('editcomment.html', post_id = post_id, comment_id = comment_id, comment = comment)
+
+  def post (self, post_id, comment_id):
     content = self.request.get("content")
+    print "content", content
+    comment = Comments.all().filter("comment_id =", comment_id)
+    comment.content = content
 
-    self.render('editcomment.html', post_id = post_id, content = content)
-
-  def post (self, post_id):
-    content = self.request.get("content")
-
-    comment = Comments.all().filter("post_id =", post_id)
-    spec_comment = comment.filter("content =", content)
-    spec_comment.content = content
-
-    self.redirect("/%s" % str(post.key().id()))
+    self.redirect("/%s" % str(post_id))
 
 class DeleteComment(BaseHandler):
   def get(self, post_id):
@@ -435,7 +436,7 @@ app = webapp2.WSGIApplication([
   ('/', Home),
   ('/([0-9]+)/([0-9]+)', Comment),
   ('/([0-9]+)/newcomment', NewComment),
-  ('/comment/([0-9]+)/edit', EditComment),
+  ('/([0-9]+)/([0-9]+)/edit', EditComment),
   ('/comment/([0-9]+)/delete', DeleteComment),
   ('/voteup/([0-9]+)', VoteUp),
   ('/votedown/([0-9]+)', VoteDown),
