@@ -242,14 +242,15 @@ class EditComment(BaseHandler):
     if self.user:
       c_key = db.Key.from_path('Comments', int(comment_id), parent= comment_key())
       comment = db.get(c_key)
+      content = comment.content
 
-      self.render('editcomment.html', post_id = post_id, comment_id = comment_id, comment = comment)
+      self.render('editcomment.html', post_id = post_id, comment_id = comment_id, content = content)
 
   def post (self, post_id, comment_id):
-    content = self.request.get("content")
-    print "content", content
-    comment = Comments.all().filter("comment_id =", comment_id)
-    comment.content = content
+    c_key = db.Key.from_path('Comments', int(comment_id), parent= comment_key())
+    comment = db.get(c_key)
+    comment.content = self.request.get("content")
+    comment.put()
 
     self.redirect("/%s" % str(post_id))
 
