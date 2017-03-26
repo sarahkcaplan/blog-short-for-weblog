@@ -172,7 +172,7 @@ class NewPost(BaseHandler):
       p = Post(parent = blog_key(), subject = subject, content = content, author = author, liked_by = [])
       p.put()
 
-      self.redirect("/%s" % str(p.key().id()))
+      self.redirect("/blog/%s" % str(p.key().id()))
     else:
       error = "we need both a title and some text!"
       self.render("newpost.html", subject = subject, content = content, error = error)
@@ -228,7 +228,7 @@ class NewComment(BaseHandler):
       comment_id = comment.key().id()
       print "comment_id",comment_id
 
-      self.redirect("/%s/%s" % (post_id, comment_id))
+      self.redirect("/blog/%s/%s" % (post_id, comment_id))
 
 class CommentPage(BaseHandler):
   def get (self, post_id, comment_id):
@@ -257,7 +257,7 @@ class EditComment(BaseHandler):
     comment.content = self.request.get("content")
     comment.put()
 
-    self.redirect("/%s" % str(post_id))
+    self.redirect("/blog/%s" % str(post_id))
 
 class DeleteComment(BaseHandler):
   def get(self, post_id, comment_id):
@@ -267,7 +267,7 @@ class DeleteComment(BaseHandler):
 
       del comment
 
-      self.redirect("/%s" % str(post_id))
+      self.redirect("/blog/%s" % str(post_id))
     else:
       self.redirect('/signup')
 
@@ -343,15 +343,7 @@ class Register(SignUp):
       u.put()
 
       self.login(u)
-      self.redirect('/welcome')
-
-# Blog welcome page after signup
-class Welcome(BaseHandler):
-  def get(self):
-    if self.user:
-      self.render('welcome.html')
-    else:
-      self.redirect('/signup')
+      self.redirect('/blog/')
 
 #Login handler
 class Login(BaseHandler):
@@ -365,7 +357,7 @@ class Login(BaseHandler):
     u = User.login(username, password)
     if u:
       self.login(u)
-      self.redirect('/welcome')
+      self.redirect('/blog/')
 
     else:
       login_error = "Invalid login"
@@ -384,7 +376,7 @@ class DeletePost(BaseHandler):
 
     del post
 
-    self.redirect('/')
+    self.redirect('/blog/')
 
 class EditPost(BaseHandler):
   def get(self, post_id):
@@ -408,7 +400,7 @@ class EditPost(BaseHandler):
 
     if post.subject and post.content:
       post.put()
-      self.redirect("/%s" % str(post.key().id()))
+      self.redirect("/blog/%s" % str(post.key().id()))
     else:
       error = "we need both a title and some text!"
       self.render("newpost.html", subject = subject, content = content, error = error)
@@ -424,7 +416,7 @@ class VoteUpPost(BaseHandler):
     post.liked_by += [uid]
     post.put()
 
-    self.redirect("/%s" % str(post.key().id()))
+    self.redirect("/blog/%s" % str(post.key().id()))
 
 class VoteDownPost(BaseHandler):
   def get(self, post_id):
@@ -438,7 +430,7 @@ class VoteDownPost(BaseHandler):
 
     post.put()
 
-    self.redirect("/%s" % str(post.key().id()))
+    self.redirect("/blog/%s" % str(post.key().id()))
 
 # URI to Handler mapping
 app = webapp2.WSGIApplication([
@@ -453,8 +445,8 @@ app = webapp2.WSGIApplication([
   ('/blog/([0-9]+)/([0-9]+)', CommentPage),
   ('/blog/([0-9]+)/([0-9]+)/editcomment', EditComment),
   ('/blog/([0-9]+)/([0-9]+)/deletecomment', DeleteComment),
-  ('/blog/([0-9]+)/voteup', VoteUpPost),
-  ('/blog/([0-9]+)/votedown', VoteDownPost),
+  ('/blog/([0-9]+)/voteuppost', VoteUpPost),
+  ('/blog/([0-9]+)/votedownpost', VoteDownPost),
   ('/logout', Logout)
   ],
   debug=True)
