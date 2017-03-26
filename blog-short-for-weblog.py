@@ -255,13 +255,13 @@ class EditComment(BaseHandler):
     self.redirect("/%s" % str(post_id))
 
 class DeleteComment(BaseHandler):
-  def get(self, post_id):
-    content = self.request.get("content")
-    comment = Comments.all().filter("post_id =", post_id)
-    spec_comment = comment.filter("content =", content)
-    del sepc_comment
+  def get(self, post_id, comment_id):
+    key = db.Key.from_path('Comments', int(comment_id), parent =comment_key())
+    comment = db.get(key)
 
-    self.redirect("/%s" % str(post.key().id()))
+    del comment
+
+    self.redirect("/%s" % str(post_id))
 
 #making and using salts
 def make_salt(length = 5):
@@ -438,7 +438,7 @@ app = webapp2.WSGIApplication([
   ('/([0-9]+)/([0-9]+)', Comment),
   ('/([0-9]+)/newcomment', NewComment),
   ('/([0-9]+)/([0-9]+)/edit', EditComment),
-  ('/comment/([0-9]+)/delete', DeleteComment),
+  ('/([0-9]+)/([0-9]+)/delete', DeleteComment),
   ('/voteup/([0-9]+)', VoteUp),
   ('/votedown/([0-9]+)', VoteDown),
   ('/newpost', NewPost ),
