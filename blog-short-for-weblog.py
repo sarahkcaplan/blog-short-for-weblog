@@ -442,20 +442,19 @@ class VoteDown(BaseHandler):
 
 # URI to Handler mapping
 app = webapp2.WSGIApplication([
-  ('/', Home),
-  ('/([0-9]+)/([0-9]+)', Comment),
-  ('/([0-9]+)/newcomment', NewComment),
-  ('/([0-9]+)/([0-9]+)/edit', EditComment),
-  ('/([0-9]+)/([0-9]+)/delete', DeleteComment),
-  ('/voteup/([0-9]+)', VoteUp),
-  ('/votedown/([0-9]+)', VoteDown),
-  ('/newpost', NewPost ),
-  ('/([0-9]+)', PostPage),
-  ('/deletepost/([0-9]+)', DeletePost),
   ('/signup', Register),
-  ('/welcome', Welcome),
   ('/login', Login),
-  ('/logout', Logout),
-  ('/([0-9]+)/edit', EditPost)
+  ('/blog/', Home),
+  ('/blog/newpost', NewPost),
+  ('/blog/([0-9]+)', PostPage),
+  ('blog/([0-9]+)/editpost', EditPost),
+  ('/blog/([0-9]+)/deletepost', DeletePost),
+  ('/blog/([0-9]+)/newcomment', NewComment),
+  ('/blog/([0-9]+)/([0-9]+)', CommentPage),
+  ('/blog/([0-9]+)/([0-9]+)/editcomment', EditComment),
+  ('/blog/([0-9]+)/([0-9]+)/deletecomment', DeleteComment),
+  ('/blog/([0-9]+)/voteup', VoteUpPost),
+  ('/blog/([0-9]+)/votedown', VoteDownPost),
+  ('/logout', Logout)
   ],
   debug=True)
