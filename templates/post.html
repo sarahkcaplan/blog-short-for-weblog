@@ -6,16 +6,16 @@
 		<br>
 	{% elif current_user != post.author %}
 		{% if liking_user %}
-			<a href="/votedown/{{post_id}}"> DISLIKE </a>
+			<a href="/blog/{{post_id}}/votedownpost"> DISLIKE </a>
 		{% else %}
-			<a href="/voteup/{{post_id}}" >LIKE</a>
+			<a href="/blog/{{post_id}}/voteuppost" >LIKE</a>
 		{% endif %}
 	<br>
 	{% endif %}
 <hr>
-<a href="/{{post_id}}/newcomment">New Comment</a>
+<a href="/blog/{{post_id}}/newcomment">New Comment</a>
 {% if current_user == post.author %}
-	<a href="/{{post_id}}/edit">Edit Post</a>
+	<a href="/blog/{{post_id}}/editpost">Edit Post</a>
 {% endif %}
 
 <div <!-- class="comments" -->
@@ -23,13 +23,15 @@
 	<div class= "author">{{comment.author}}</div>
 	<div>{{comment.content}}</div>
 	<div class= "date_time"> {{comment.last_modified}}</div>
-	<a href="/{{comment.post_id}}/{{comment.key().id()}}/edit">Edit Comment</a>
+	{{% if current_user == comment.author %}}
+		<a href="/blog/{{comment.post_id}}/{{comment.key().id()}}/editcomment">Edit Comment</a>
+	{{% endif %}}
 {% endfor %}
 </div>
 
 <div>
 {% if current_user == post.author %}
-	<a href="/deletepost/{{post_id}}"> Delete Post </a>
+	<a href="/blog/{{post_id}}/deletepost"> Delete Post </a>
 {% endif %}
 </div>
 
