@@ -210,8 +210,10 @@ class PostPage(BaseHandler):
 
 class NewComment(BaseHandler):
   def get(self, post_id):
-
-    self.render('newcomment.html')
+    if self.user:
+      self.render('newcomment.html')
+    else:
+      self.redirect('/signup')
 
   def post(self, post_id):
     content = self.request.get("content")
@@ -235,7 +237,8 @@ class Comment(BaseHandler):
       comment = db.get(c_key)
 
       self.render("comment.html", comment = comment, post_id = post_id, comment_id = comment_id)
-
+    else:
+      self.redirect('/signup')
 
 class EditComment(BaseHandler):
   def get(self, post_id, comment_id):
@@ -245,6 +248,8 @@ class EditComment(BaseHandler):
       content = comment.content
 
       self.render('editcomment.html', post_id = post_id, comment_id = comment_id, content = content)
+    else:
+      self.redirect('/signup')
 
   def post (self, post_id, comment_id):
     c_key = db.Key.from_path('Comments', int(comment_id), parent= comment_key())
@@ -256,12 +261,15 @@ class EditComment(BaseHandler):
 
 class DeleteComment(BaseHandler):
   def get(self, post_id, comment_id):
-    key = db.Key.from_path('Comments', int(comment_id), parent =comment_key())
-    comment = db.get(key)
+    if self.user:
+      key = db.Key.from_path('Comments', int(comment_id), parent =comment_key())
+      comment = db.get(key)
 
-    del comment
+      del comment
 
-    self.redirect("/%s" % str(post_id))
+      self.redirect("/%s" % str(post_id))
+    else:
+      self.redirect('/signup')
 
 #making and using salts
 def make_salt(length = 5):
