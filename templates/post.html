@@ -1,37 +1,36 @@
-
-	<h1>A Blog Post.</h1>
-	<div <!-- class= "title" -->{{post.subject}}</div>
-	<div <!-- class= "entry">{{post.content}}</div>
-	<div <!-- class ="like">Likes: {{likes_count}}</div>
-		{% if current_user == post.author %}
-			<br>
-		{% elif current_user != post.author %}
-			{% if liking_user %}
-				<a href="/votedown/{{post_id}}"> DISLIKE </a>
-			{% else %}
-				<a href="/voteup/{{post_id}}" >LIKE</a>
-			{% endif %}
-		<br>
-		{% endif %}
-	<hr>
+<h1>A Blog Post.</h1>
+<div <!-- class= "title" -->{{post.subject}}</div>
+<div <!-- class= "entry">{{post.content}}</div>
+<div <!-- class ="like">Likes: {{likes_count}}</div>
 	{% if current_user == post.author %}
-		<a href="/{{post_id}}/edit">Edit Post</a>
+		<br>
+	{% elif current_user != post.author %}
+		{% if liking_user %}
+			<a href="/votedown/{{post_id}}"> DISLIKE </a>
+		{% else %}
+			<a href="/voteup/{{post_id}}" >LIKE</a>
+		{% endif %}
+	<br>
 	{% endif %}
+<hr>
+<a href="/{{post_id}}/newcomment">New Comment</a>
+{% if current_user == post.author %}
+	<a href="/{{post_id}}/edit">Edit Post</a>
+{% endif %}
 
-	<form method ="post" action="/comment/{{post_id}}">
-		<div <!-- class="comments" -->
-			<p>Leave a Comment</p>
-			<textarea name="content"></textarea>
-		{% for comment in comments %}
-			<div class= "author">{{comment.author}}</div>
-			<div>{{comment.content}}</div>
-			<div class= "date_time"> {{comment.last_modified}}</div>
-		{% endfor %}
-		</div>
-		<input type="submit">
-	</form>
-	{% if current_user == post.author %
-		<a href="/deletepost/{{post_id}}">Delete Post</a>
-	{% endif %}
+<div <!-- class="comments" -->
+{% for comment in comments %}
+	<div class= "author">{{comment.author}}</div>
+	<div>{{comment.content}}</div>
+	<div class= "date_time"> {{comment.last_modified}}</div>
+	<a href="/{{comment.post_id}}/{{comment.key().id()}}/edit">Edit Comment</a>
+{% endfor %}
+</div>
+
+<div>
+{% if current_user == post.author %}
+	<a href="/deletepost/{{post_id}}"> Delete Post </a>
+{% endif %}
+</div>
 
 

@@ -200,10 +200,6 @@ class PostPage(BaseHandler):
 
       comment = Comments.all().order("-last_modified")
       comments = comment.filter("post_id =", post_id)
-      comment_id = self.request.get("comment_id")
-
-      for commment in comments:
-        print "comment_id:", comment.comment_id
 
       likes_count = len(post.liked_by)
 
