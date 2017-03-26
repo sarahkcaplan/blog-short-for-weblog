@@ -230,7 +230,7 @@ class NewComment(BaseHandler):
 
       self.redirect("/%s/%s" % (post_id, comment_id))
 
-class Comment(BaseHandler):
+class CommentPage(BaseHandler):
   def get (self, post_id, comment_id):
     if self.user:
       c_key = db.Key.from_path('Comments', int(comment_id), parent= comment_key())
@@ -414,7 +414,7 @@ class EditPost(BaseHandler):
       self.render("newpost.html", subject = subject, content = content, error = error)
 
 
-class VoteUp(BaseHandler):
+class VoteUpPost(BaseHandler):
   def get(self, post_id):
     key = db.Key.from_path('Post', int(post_id), parent =blog_key())
     post = db.get(key)
@@ -426,7 +426,7 @@ class VoteUp(BaseHandler):
 
     self.redirect("/%s" % str(post.key().id()))
 
-class VoteDown(BaseHandler):
+class VoteDownPost(BaseHandler):
   def get(self, post_id):
     uid = int(self.read_secure_cookie('user_id'))
 
