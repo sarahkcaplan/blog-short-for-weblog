@@ -180,7 +180,7 @@ class NewPost(BaseHandler):
 
 # Handler for post's pages. Defines post's db key for URI. (?? Or maybe gets post_id from URI or both??)
 class PostPage(BaseHandler):
-  def get(self, post_id):
+  def get(self, post_id, comment_id = None):
     if self.user:
       post_key = db.Key.from_path('Post', int(post_id), parent =blog_key())
       post = db.get(post_key)
@@ -198,8 +198,12 @@ class PostPage(BaseHandler):
         self.error(404)
         return
 
-      comments = Comments.all().order("-last_modified")
-      comments.filter("post_id =", post_id)
+      comment = Comments.all().order("-last_modified")
+      comments = comment.filter("post_id =", post_id)
+      comment_id = self.request.get("comment_id")
+
+      for commment in comments:
+        print "comment_id:", comment.comment_id
 
       likes_count = len(post.liked_by)
 
