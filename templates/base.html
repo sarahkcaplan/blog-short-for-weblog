@@ -5,26 +5,37 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title> {% block title %}{% endblock title %} Blog|Short for Weblog </title>
+    <title> {% block title %} Blog|Short for Weblog {% endblock title %}</title>
     <!-- Bootstrap file:Basic, general version -->
     <link type ="text/css" href="/css/bootstrap.min.css" rel="stylesheet">
     <!-- CSS file for customization on top of Bootstrap -->
-    <link type = "text/css" href="/static/styles.css" rel="stylesheet">
+    <link type = "text/css" href="/css/styles.css" rel="stylesheet">
     <!-- Link to Google Fonts. Fonts not saved in Fonts file -->
     <link href="https://fonts.googleapis.com/css?family=Heebo:100" rel="stylesheet">
-    {% endblock %}
+    {% endblock head %}
   </head>
   <body>
     <div class="container-fluid">
       <header class="row">
         <div class="col-xs-12 col-sm-4">
-          <img src="/images/logo.png" id="logo" class="image-responsive center-block" alt="Sarah Caplan Logo">
+          <a href="/blog/">
+            <img src="/images/xs_sm_logo.png" id="logo" alt="Sarah Caplan Logo">
+          </a>
         </div>
-        <div class="col-xs-12 col-sm-8" style = background-color:green;>
-          <h1>BLOG: SHORT FOR WEBLOG</h1>
-          <h2>Hi, {{user.name}} | <a href="/logout">Logout</a></h2>
+        <div class="col-xs-12 col-sm-4" align="right">
+          <div class="username">
+            <h1>{{user.name}}</h1>
+          </div>
+        </div>
+        <div class="col-xs-12 col-sm-4">
+
+        </div>
+        <div class="col-xs-12 col-sm-4" align="right">
+          <a href="/blog/newpost" class="btn btn-info" role="button">New Post</a>
+          <a href="/logout">Logout</a>
         </div>
       </header>
+      </div>
       <section class = "row"> {% block section %}{% endblock section %}
       </section>
     </div>
