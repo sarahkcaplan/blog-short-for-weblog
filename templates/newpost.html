@@ -1,22 +1,28 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<title>Blog. New Post.</title>
-</head>
-<body>
-	<h1>Create a new entry.</h1>
-	<h2>Inclue a title and a body.</h2>
-	<form method ="post">
-		<div class="title">
-			<input type = "text" name ="subject" value ="{{subject}}" >
+{% extends "base.html" %}
+
+	<title>
+		{% block title%} Blog. New Post.{% endblock title %}
+	</title>
+
+	{% block section %}
+	<div class="container-fluid">
+		<div class="row">
+			<h1>Create a new entry.</h1>
+			<h2>Inclue a title and a body.</h2>
 		</div>
-		<div class="body">
-			<textarea name="content">{{content}}</textarea>
+		<div class="row-fluid">
+			<form method ="post">
+				<div class="field">
+					<input type = "text" name ="subject" placeholder ="Post title" value ="{{subject}}">
+				</div>
+				<div class="field">
+					<textarea placeholder="Post content" name="content">{{content}}</textarea>
+				</div>
+				{{error}}
+				<div>
+					<input type="submit" class="btn btn-info" role="button">
+				</form>
+			</div>
 		</div>
-		{{error}}
-		<div class="button">
-			<input type="submit">
-		</div>
-	</form>
-</body>
-</html>
+	</div>
+	{% endblock section%}
