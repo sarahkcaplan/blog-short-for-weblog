@@ -1,19 +1,33 @@
-{% block content %}
-  <h2>Edit post</h2>
+{% extends "base.html" %}
 
-    <form method="post">
-      <label>
-        <div>subject</div>
-        <input type="text" name="subject" value="{{post.subject}}">
-      </label>
+  <title>
+    {% block title%} Edit Post{% endblock title %}
+  </title>
 
-      <label>
-        <div>blog</div>
-        <textarea name="content">{{post.content}}</textarea>
-      </label>
-
-      <div class="error">{{error}}</div>
-
-      <input type="submit">
-    </form>
-{% endblock %}
+  {% block section %}
+  <div class="fluid-container">
+    <div class="row">
+      <h2>Edit post</h2>
+    </div>
+    <div class="fluid-row">
+      <form method="post">
+        <div class="field">
+          <h3>Title</h3>
+          <input type="text" name="subject" value="{{post.subject}}">
+          <h3>Content</h3>
+          <textarea name="content">{{post.content}}</textarea>
+        </div>
+        <br>
+        <div class="fluid-row">
+          <div class="error">
+            {{error}}
+          </div>
+        </div>
+        <br>
+        <div class="fluid-row">
+          <input type="submit" class="btn btn-info" role="button">
+          <a href="/blog/{{post_id}}" class="btn btn-warning" role="button">Cancel</a>
+        </div>
+      </form>
+    </div>
+  {% endblock section%}

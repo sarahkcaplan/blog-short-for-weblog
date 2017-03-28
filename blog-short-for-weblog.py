@@ -174,7 +174,7 @@ class NewPost(BaseHandler):
 
       self.redirect("/blog/%s" % str(p.key().id()))
     else:
-      error = "we need both a title and some text!"
+      error = "We need both a title and some text"
       self.render("newpost.html", subject = subject, content = content, error = error)
 
 
@@ -388,7 +388,7 @@ class EditPost(BaseHandler):
         self.error(404)
         return
 
-      self.render("editpost.html", post = post)
+      self.render("editpost.html", post = post, post_id = post_id)
     else:
       self.redirect('/signup')
 
@@ -439,7 +439,7 @@ app = webapp2.WSGIApplication([
   ('/blog/', Home),
   ('/blog/newpost', NewPost),
   ('/blog/([0-9]+)', PostPage),
-  ('blog/([0-9]+)/editpost', EditPost),
+  ('/blog/([0-9]+)/editpost', EditPost),
   ('/blog/([0-9]+)/deletepost', DeletePost),
   ('/blog/([0-9]+)/newcomment', NewComment),
   ('/blog/([0-9]+)/([0-9]+)', CommentPage),
