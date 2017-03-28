@@ -1,38 +1,75 @@
-<h1>A Blog Post.</h1>
-<div <!-- class= "title" -->{{post.subject}}</div>
-<div <!-- class= "entry">{{post.content}}</div>
-<div <!-- class ="like">Likes: {{likes_count}}</div>
-	{% if current_user == post.author %}
-		<br>
-	{% elif current_user != post.author %}
-		{% if liking_user %}
-			<a href="/blog/{{post_id}}/votedownpost"> DISLIKE </a>
-		{% else %}
-			<a href="/blog/{{post_id}}/voteuppost" >LIKE</a>
+{% extends "base.html" %}
+
+{% block title%} Post{% endblock title %}
+
+{% block section %}
+<div class="container-fluid">
+	<div class="row">
+		<h1>A Blog Post.</h1>
+	</div>
+	<div class="row">
+		<div class="author">
+			{{post.author}}
+		</div>
+		<div class= "title">
+			{{post.subject}}
+		</div>
+		<div class= "content">
+			{{post.content}}
+		</div>
+		<div>
+			<h4>Likes: {{likes_count}}</h4>
+		</div>
+	</div>
+	<div class="row">
+		{% if current_user != post.author %}
+			{% if liking_user %}
+				<a href="/blog/{{post_id}}/votedownpost"class="btn btn-warning" role="button"> DISLIKE </a>
+			{% else %}
+				<a href="/blog/{{post_id}}/voteuppost" class="btn btn-primary" role="button">LIKE</a>
+			{% endif %}
 		{% endif %}
+	</div>
 	<br>
-	{% endif %}
-<hr>
-<a href="/blog/{{post_id}}/newcomment">New Comment</a>
-{% if current_user == post.author %}
-	<a href="/blog/{{post_id}}/editpost">Edit Post</a>
-{% endif %}
+	<hr>
+	<br>
+	<div class="row">
+		<a href="/blog/{{post_id}}/newcomment" class="btn btn-default" role="button">New Comment</a>
+	</div>
+	<br>
+	<div class="row">
+		{% for comment in comments %}
+		<div class="comment">
+			<div class="comment_author">
+				{{comment.author}}
+				<br>
+			</div>
+			<div class="comment_content">
+				{{comment.content}}
+			</div>
+			<div class= "date_time">
+				{{comment.last_modified}}
+			</div>
+			{% if current_user == comment.author %}
+				<a href="/blog/{{comment.post_id}}/{{comment.key().id()}}/editcomment">Edit Comment</a>
+			{% endif %}
 
-<div <!-- class="comments" -->
-{% for comment in comments %}
-	<div class= "author">{{comment.author}}</div>
-	<div>{{comment.content}}</div>
-	<div class= "date_time"> {{comment.last_modified}}</div>
-	{{% if current_user == comment.author %}}
-		<a href="/blog/{{comment.post_id}}/{{comment.key().id()}}/editcomment">Edit Comment</a>
-	{{% endif %}}
-{% endfor %}
+		</div>
+		{% endfor %}
+	</div>
+	</div>
+	<br>
+	<br>
+	<br>
+	<div class="row">
+		{% if current_user == post.author %}
+			<a href="/blog/{{post_id}}/editpost" class="btn btn-info" role="button">Edit Post</a>
+		{% endif %}
+		{% if current_user == post.author %}
+			<a href="/blog/{{post_id}}/deletepost" class="btn btn-warning" role="button"> Delete Post </a>
+		{% endif %}
+	</div>
 </div>
-
-<div>
-{% if current_user == post.author %}
-	<a href="/blog/{{post_id}}/deletepost"> Delete Post </a>
-{% endif %}
-</div>
+{% endblock section%}
 
 
