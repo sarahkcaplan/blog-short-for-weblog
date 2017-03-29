@@ -14,14 +14,12 @@
 				<div class="field">
 					<textarea name="content" placeholder="Your comment">{{content}}</textarea>
 				</div>
+				{{error}}
 				<br>
 				<br>
 				<input type="submit" class="btn btn-info" role="button">
 				<a href="/blog/{{post_id}}" class="btn btn-warning" role="button">Cancel</a>
 			</form>
-
 		</div>
-		<div class="row-fluid">
-
 	</div>
 	{% endblock section %}

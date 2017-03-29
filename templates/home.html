@@ -5,15 +5,16 @@
 	<h2>Here are our latest posts!</h2>
 	<br>
 	{% for post in posts %}
-		{{post.author}}
-		<div class= "title">{{post.subject}}</div>
-		<div class= "post">{{post.content}}</div>
-		{{post.last_modified}}
-		<a href="/blog/{{post.key().id()}}">Go to Post</a>
+		<div class="post">
+			<div class="author">{{post.author}}</div>
+			<div class= "title">{{post.subject}}</div>
+			<div class= "content">{{post.content}}</div>
+			<div class= "date">{{post.last_modified}}</div>
+		</div>
+		<br>
+		<a href="/blog/{{post.key().id()}}" class="btn btn-info" role="button">  Go to Post  </a>
 		<hr>
 		<br>
 	{% endfor %}
-	<div class= "button">
-		<a href ="/blog/newpost">New Entry
-	</div>
-{% endblock %}
+
+{% endblock section %}

@@ -1,6 +1,31 @@
-<h1> A comment </h1>
-{{comment.author}}
-{{comment.content}}
-{{comment.last_modified}}
-<a href="/blog/{{post_id}}">Back to Post</a>
-<a href="/blog/{{post_id}}/{{comment_id}}/editcomment">Edit Comment</a>
+{% extends "base.html" %}
+
+{% block title%} Comment{% endblock title %}
+
+{% block section %}
+<div class="container-fluid">
+	<div class="row">
+		<h1> Your comment </h1>
+	</div>
+	<div class="row-fluid">
+		<div class="post">
+			<div class="author">
+				{{comment.author}}
+			</div>
+			<div class="content">
+				{{comment.content}}
+			</div>
+			<div class="date">
+			{{comment.last_modified}}
+			</div>
+		</div>
+	</div>
+	<br>
+	<br>
+	<div="row">
+		<a href="/blog/{{post_id}}" class="btn btn-info" role="button" align="left">Back to Post</a>
+		<a href="/blog/{{post_id}}/{{comment_id}}/editcomment" class="btn btn-info" align="right" role="button">Edit</a>
+		<a href="/blog/{{post_id}}/{{comment_id}}/deletecomment" class="btn btn-warning" align="right" role="button">Delete</a>
+	</div>
+</div>
+{% endblock section%}
