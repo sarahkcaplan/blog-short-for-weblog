@@ -1,25 +1,27 @@
 {% extends "base.html" %}
 
-{% block title%} New Comment {% endblock title %}
+	<title>
+		{% block title%} New Comment {% endblock title %}
+	</title>
 
-{% block section %}
-<div class="container-fluid">
-	<div class="row">
-		<h1>New Comment</h1>
+	{% block section %}
+	<div class="container-fluid">
+		<div class="row">
+			<h1>New Comment</h1>
+		</div>
+		<div class="row-fluid">
+			<form method="post">
+				<div class="field">
+					<textarea name="content" placeholder="Your comment">{{content}}</textarea>
+				</div>
+				<br>
+				<br>
+				<input type="submit" class="btn btn-info" role="button">
+				<a href="/blog/{{post_id}}" class="btn btn-warning" role="button">Cancel</a>
+			</form>
+
+		</div>
+		<div class="row-fluid">
+
 	</div>
-	<div class="row-fluid">
-		<form method="post">
-			<div class="field">
-				<textarea name="content" placeholder="Your comment">{{content}}</textarea>
-			</div>
-			<br>
-			<br>
-			<input type="submit" class="btn btn-info" role="button">
-			<a href="/blog/{{post_id}}/{{commnet_id}}/deletecomment" class="btn btn-warning" role="button">Cancel</a>
-		</form>
-
-	</div>
-	<div class="row-fluid">
-
-</div>
-{% endblock section%}
+	{% endblock section %}
