@@ -211,7 +211,7 @@ class PostPage(BaseHandler):
 class NewComment(BaseHandler):
   def get(self, post_id):
     if self.user:
-      self.render('newcomment.html')
+      self.render('newcomment.html', post_id = post_id)
     else:
       self.redirect('/signup')
 
