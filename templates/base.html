@@ -31,8 +31,12 @@
 
         </div>
         <div class="col-xs-12 col-sm-4" align="right">
-          <a href="/blog/newpost" class="btn btn-info" role="button">New Post</a>
-          <a href="/logout">Logout</a>
+          {% if self.user %}
+            <a href="/blog/newpost" class="btn btn-info" role="button">New Post</a>
+            <a href="/logout">Logout</a>
+          {% else %}
+            <a href="/login" class="btn btn-info" role="button">Login</a>
+          {% endif %}
         </div>
       </header>
       </div>
