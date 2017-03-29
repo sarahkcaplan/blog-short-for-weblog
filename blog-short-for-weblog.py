@@ -214,8 +214,8 @@ class SignUp(BaseHandler):
             params['error_password'] = "That's not a valid password."
             have_error = True
 
-            elif self.password != self.verify:
-                params['error_verify'] = "Your passwords didn't match."
+        elif self.password != self.verify:
+            params['error_verify'] = "Your passwords didn't match."
             have_error = True
 
         if not valid_email(self.email):
@@ -294,25 +294,28 @@ class NewPost(BaseHandler):
             self.redirect('/signup')
 
     def post(self):
-        subject = self.request.get("subject")
-        content = self.request.get("content")
-        uid = int(self.read_secure_cookie('user_id'))
-        user = User.by_id(uid)
-        author = str(user.name)
+        if self.user:
+            subject = self.request.get("subject")
+            content = self.request.get("content")
+            uid = int(self.read_secure_cookie('user_id'))
+            user = User.by_id(uid)
+            author = str(user.name)
 
-        if subject and content:
-            # This is invoking a model class constructor
-            p = Post(parent=blog_key(), subject=subject, content=content,
-                     author=author, liked_by=[])
-            p.put()
+            if subject and content:
+                # This is invoking a model class constructor
+                p = Post(parent=blog_key(), subject=subject, content=content,
+                         author=author, liked_by=[])
+                p.put()
 
-            self.redirect("/blog/%s" % str(p.key().id()))
+                self.redirect("/blog/%s" % str(p.key().id()))
+
+            else:
+                error = "We need both a title and some text"
+                self.render("newpost.html", subject=subject,
+                            content=content, error=error)
 
         else:
-            error = "We need both a title and some text"
-            self.render("newpost.html", subject=subject,
-                        content=content, error=error)
-
+            self.redirect('/signup')
 
 # Handler for post's permalink pages. Gets post_id from URI.
 class PostPage(BaseHandler):
@@ -332,22 +335,22 @@ class PostPage(BaseHandler):
             else:
                 liking_user = None
 
-        comment = Comments.all().order("-last_modified")
-        comments = comment.filter("post_id =", post_id)
+            comment = Comments.all().order("-last_modified")
+            comments = comment.filter("post_id =", post_id)
 
-        likes_count = len(post.liked_by)
+            likes_count = len(post.liked_by)
 
-        self.render("post.html", liking_user=liking_user,
+            self.render("post.html", liking_user=liking_user,
                     current_user=current_user, post=post,
                     likes_count=likes_count,
                     comments=comments, post_id=post_id)
 
+        else:
+            self.redirect('/signup')
+
         if not post:
             self.error(404)
             return
-
-        else:
-            self.redirect('/signup')
 
 
 # Handler for deleting post
