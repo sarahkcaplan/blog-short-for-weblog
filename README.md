@@ -1,6 +1,6 @@
 # blog-short-for-weblog
 <h2>A Multi-User Blog</h2>
-<br>
+<p>rot13-090117.appspot.com/signup</p>
 <h3>Use it to:</h3>
 <ul>
   <li>Share your ideas with others</li>
