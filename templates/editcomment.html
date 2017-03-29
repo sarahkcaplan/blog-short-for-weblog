@@ -1,6 +1,25 @@
-<form method="post">
-	<p>Edit Your Comment</p>
-	<textarea name="content">{{content}}</textarea>
-	<input type="submit">
-</form>
-<a href="/blog/{{post_id}}/{{comment_id}}/deletecomment">Delete Your Comment</a>
+{% extends "base.html" %}
+<title>
+	{% block title%} Edit Comment {% endblock title %}
+</title>
+	{% block section %}
+		<div class="container-fluid">
+			<div class="row-fluid">
+				<h2>Edit Your Comment</h2>
+			</div>
+			<div class="row-fluid">
+				<form method="post">
+					<div class="field">
+						<textarea name="content">
+							{{content}}
+						</textarea>
+					</div>
+					<br>
+					<br>
+					<input type="submit" class="btn btn-info" role="button">
+					<a href="/blog/{{post_id}}/{{comment_id}}/deletecomment" class="btn btn-warning" role="button">Delete</a>
+				</form>
+
+			</div>
+		</div>
+	{% endblock section%}
