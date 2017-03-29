@@ -348,10 +348,6 @@ class PostPage(BaseHandler):
         else:
             self.redirect('/signup')
 
-        if not post:
-            self.error(404)
-            return
-
 
 # Handler for deleting post
 class DeletePost(BaseHandler):
@@ -372,12 +368,12 @@ class EditPost(BaseHandler):
             post = db.get(key)
             self.render("editpost.html", post=post, post_id=post_id)
 
+        else:
+            self.redirect('/signup')
+
         if not post:
             self.error(404)
             return
-
-        else:
-            self.redirect('/signup')
 
     def post(self, post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
