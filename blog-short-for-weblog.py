@@ -376,21 +376,24 @@ class EditPost(BaseHandler):
             return
 
     def post(self, post_id):
-        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
-        post = db.get(key)
-        subject = self.request.get("subject")
-        content = self.request.get("content")
+        if self.user:
+            key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+            post = db.get(key)
+            subject = self.request.get("subject")
+            content = self.request.get("content")
 
-        if subject and content:
-            post.subject = subject
-            post.content = content
-            post.put()
-            self.redirect("/blog/%s" % str(post.key().id()))
+            if subject and content:
+                post.subject = subject
+                post.content = content
+                post.put()
+                self.redirect("/blog/%s" % str(post.key().id()))
 
+            else:
+                error = "We need both a title and some text"
+                self.render("newpost.html", subject=subject, content=content,
+                            error=error)
         else:
-            error = "We need both a title and some text"
-            self.render("newpost.html", subject=subject, content=content,
-                        error=error)
+            self.redirect('/signup')
 
 
 # Handler for adding a comment to a post.
@@ -403,24 +406,26 @@ class NewComment(BaseHandler):
             self.redirect('/signup')
 
     def post(self, post_id):
-        content = self.request.get("content")
+        if self.user:
+            content = self.request.get("content")
 
-        if content:
-            uid = int(self.read_secure_cookie('user_id'))
-            user = User.by_id(uid)
-            author = str(user.name)
+            if content:
+                uid = int(self.read_secure_cookie('user_id'))
+                user = User.by_id(uid)
+                author = str(user.name)
 
-            comment = Comments(parent=comment_key(), author=author,
-                               content=content, post_id=post_id)
-            comment.put()
-            comment_id = comment.key().id()
+                comment = Comments(parent=comment_key(), author=author,
+                                   content=content, post_id=post_id)
+                comment.put()
+                comment_id = comment.key().id()
 
-            self.redirect("/blog/%s/%s" % (post_id, comment_id))
+                self.redirect("/blog/%s/%s" % (post_id, comment_id))
 
+            else:
+                error = "Comment needs content"
+                self.render('newcomment.html', error=error, post_id=post_id)
         else:
-            error = "Comment needs content"
-            self.render('newcomment.html', error=error, post_id=post_id)
-
+            self.redirect('/signup')
 
 # Handler for Comment's permalink page
 class CommentPage(BaseHandler):
@@ -452,21 +457,23 @@ class EditComment(BaseHandler):
             self.redirect('/signup')
 
     def post(self, post_id, comment_id):
-        c_key = db.Key.from_path('Comments', int(comment_id),
-                                 parent=comment_key())
-        comment = db.get(c_key)
-        content = self.request.get("content")
+        if self.user:
+            c_key = db.Key.from_path('Comments', int(comment_id),
+                                     parent=comment_key())
+            comment = db.get(c_key)
+            content = self.request.get("content")
 
-        if content:
-            comment.content = content
-            comment.put()
-            self.redirect("/blog/%s" % str(post_id))
+            if content:
+                comment.content = content
+                comment.put()
+                self.redirect("/blog/%s" % str(post_id))
 
+            else:
+                error = "We need a comment"
+                self.render('editcomment.html', error=error, post_id=post_id,
+                            comment_id=comment_id, content=content)
         else:
-            error = "We need a comment"
-            self.render('editcomment.html', error=error, post_id=post_id,
-                        comment_id=comment_id, content=content)
-
+            self.redirect('/signup')
 
 # Handler for deleteing a comment
 class DeleteComment(BaseHandler):
