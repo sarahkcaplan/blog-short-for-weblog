@@ -30,9 +30,6 @@ def render_post(response, post):
 
 
 # Hashing functions
-def hash_str(s):
-    return haslib.md5(s).hexdigest()
-
 secret = "evernote"
 
 
@@ -351,17 +348,19 @@ class PostPage(BaseHandler):
 
 # Handler for deleting post
 class DeletePost(BaseHandler):
+    # Checks for author handled on post.html template
     def get(self, post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
 
-        del post
+        post.delete()
 
         self.redirect('/blog/')
 
 
 # Handler for editing post
 class EditPost(BaseHandler):
+    # Checks for author handled on post.html template
     def get(self, post_id):
         if self.user:
             key = db.Key.from_path('Post', int(post_id), parent=blog_key())
@@ -427,6 +426,7 @@ class NewComment(BaseHandler):
         else:
             self.redirect('/signup')
 
+
 # Handler for Comment's permalink page
 class CommentPage(BaseHandler):
     def get(self, post_id, comment_id):
@@ -443,6 +443,7 @@ class CommentPage(BaseHandler):
 
 # Handler for editing a comment
 class EditComment(BaseHandler):
+    # Checks for author handled on post.html template
     def get(self, post_id, comment_id):
         if self.user:
             c_key = db.Key.from_path('Comments', int(comment_id),
@@ -477,13 +478,14 @@ class EditComment(BaseHandler):
 
 # Handler for deleteing a comment
 class DeleteComment(BaseHandler):
+    # Checks for author handled on post.html template
     def get(self, post_id, comment_id):
         if self.user:
             key = db.Key.from_path('Comments', int(comment_id),
                                    parent=comment_key())
             comment = db.get(key)
 
-            del comment
+            comment.delete()
 
             self.redirect("/blog/%s" % str(post_id))
 
@@ -493,34 +495,41 @@ class DeleteComment(BaseHandler):
 
 # Handler for liking post
 class VoteUpPost(BaseHandler):
+    # Checks for author handled on post.html template
     def get(self, post_id):
-        key = db.Key.from_path('Post', int(post_id),
-                               parent=blog_key())
-        post = db.get(key)
+        if self.user:
+            key = db.Key.from_path('Post', int(post_id),
+                                   parent=blog_key())
+            post = db.get(key)
 
-        uid = int(self.read_secure_cookie('user_id'))
+            uid = int(self.read_secure_cookie('user_id'))
 
-        post.liked_by += [uid]
-        post.put()
+            post.liked_by += [uid]
+            post.put()
 
-        self.redirect("/blog/%s" % str(post.key().id()))
-
+            self.redirect("/blog/%s" % str(post.key().id()))
+        else:
+            self.redirect('/signup')
 
 # Handler for disliking post
 class VoteDownPost(BaseHandler):
+    # Checks for author handled on post.html template
     def get(self, post_id):
-        uid = int(self.read_secure_cookie('user_id'))
+        if self.user:
+            uid = int(self.read_secure_cookie('user_id'))
 
-        key = db.Key.from_path('Post', int(post_id),
-                               parent=blog_key())
-        post = db.get(key)
+            key = db.Key.from_path('Post', int(post_id),
+                                   parent=blog_key())
+            post = db.get(key)
 
-        liked_by_position = post.liked_by.index(uid)
-        del post.liked_by[liked_by_position]
+            liked_by_position = post.liked_by.index(uid)
+            del post.liked_by[liked_by_position]
 
-        post.put()
+            post.put()
 
-        self.redirect("/blog/%s" % str(post.key().id()))
+            self.redirect("/blog/%s" % str(post.key().id()))
+        else:
+            self.redirect('/signup')
 
 
 # URI to Handler mapping
