@@ -128,16 +128,6 @@ class Post(db.Model):
         post = db.get(post_key)
         return post
 
-    @classmethod
-    def post_author(cls, post_id):
-        author_query = db.Query(Post, projection=("author"))
-        author = author_query.all().filter("post_id =", post_id).get()
-        return author
-
-    @classmethod
-    def like_users(cls, post_id):
-        liked_query = db.Query(Post, projection=(""))
-
     def render(self):
         self._render_text = self.content.replace('\n', '<br>')
         return render_str("post.html", p=self)
@@ -149,12 +139,6 @@ class Comments(db.Model):
     post_id = db.StringProperty(required=True)
     content = db.TextProperty(required=True)
     last_modified = db.DateTimeProperty(auto_now_add=True)
-
-    @classmethod
-    def comment_author(cls, post_id):
-        author_query = db.Query(Comment, projection=("author"))
-        author = author_query.all().filter("post_id =", post_id).get()
-        return author
 
     @classmethod
     def comment_query(cls,comment_id):
@@ -344,7 +328,6 @@ class PostPage(BaseHandler):
     def get(self, post_id, comment_id=None):
         if self.user:
             post = Post.post_query(post_id)
-
             uid = int(self.read_secure_cookie('user_id'))
             user = User.by_id(uid)
             current_user = str(user.name)
@@ -499,6 +482,7 @@ class DeleteComment(BaseHandler):
     # Checks for author handled on post.html template
     def get(self, post_id, comment_id):
         comment = Comment.comment_query(comment_id)
+
         if self.user and self.user = comment.author:
 
             comment.delete()
@@ -514,8 +498,11 @@ class VoteUpPost(BaseHandler):
     # Checks for author handled on post.html template
     def get(self, post_id):
         post = Post.post_query(post_id)
-        if self.user and self.user = post.author:
-            uid = int(self.read_secure_cookie('user_id'))
+        uid = int(self.read_secure_cookie('user_id'))
+
+        if uid not in post.liked_by:
+
+        elif self.user and self.user != post.author:
             post.liked_by += [uid]
             post.put()
 
@@ -528,7 +515,7 @@ class VoteDownPost(BaseHandler):
     # Checks for author handled on post.html template
     def get(self, post_id):
         post = Post.post_query(post_id)
-        if self.user and self.user = post.author:
+        if self.user and self.user != post.author:
             uid = int(self.read_secure_cookie('user_id'))
 
             liked_by_position = post.liked_by.index(uid)
