@@ -64,9 +64,9 @@
 		{% if current_user == post.author %}
 			<a href="/blog/{{post_id}}/editpost" class="btn btn-info" role="button">Edit Post</a>
 		{% endif %}
-		{% if current_user == post.author %}
+<!-- 		{% if current_user == post.author %} -->
 			<a href="/blog/{{post_id}}/deletepost" class="btn btn-warning" role="button"> Delete Post </a>
-		{% endif %}
+<!-- 		{% endif %} -->
 	</div>
 </div>
 {% endblock section%}

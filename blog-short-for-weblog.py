@@ -100,6 +100,17 @@ class BaseHandler(webapp2.RequestHandler):
 
 # Google Datastore entities
 
+# Parent keys for each Google Datastore entity
+def blog_key(name='default'):
+    return db.Key.from_path('blogs', name)
+
+
+def users_key(group='default'):
+    return db.Key.from_path('users', group)
+
+
+def comment_key(group='default'):
+    return db.Key.from_path('comment', group)
 
 # Blog Post Entity
 class Post(db.Model):
@@ -109,6 +120,12 @@ class Post(db.Model):
     created = db.DateTimeProperty(auto_now_add=True)
     last_modified = db.DateTimeProperty(auto_now=True)
     liked_by = db.ListProperty(int)
+
+    @classmethod
+    def post_author(cls, post_id):
+        author_query = db.Query(Post, projection=("author"))
+        author = author_query.filter("post_id =", post_id).get()
+        return author
 
     def render(self):
         self._render_text = self.content.replace('\n', '<br>')
@@ -159,34 +176,19 @@ class User(db.Model):
             return u
 
 
-# Parent keys for each Google Datastore entity
-def blog_key(name='default'):
-    return db.Key.from_path('blogs', name)
-
-
-def users_key(group='default'):
-    return db.Key.from_path('users', group)
-
-
-def comment_key(group='default'):
-    return db.Key.from_path('comment', group)
-
-
 # Blog sign up
-USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
-PASS_RE = re.compile(r"^.{3,20}$")
-EMAIL_RE = re.compile(r'^[\S]+@[\S]+\.[\S]+$')
-
-
 def valid_username(username):
+    USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
     return username and USER_RE.match(username)
 
 
 def valid_password(password):
+    PASS_RE = re.compile(r"^.{3,20}$")
     return password and PASS_RE.match(password)
 
 
 def valid_email(email):
+    EMAIL_RE = re.compile(r'^[\S]+@[\S]+\.[\S]+$')
     return not email or EMAIL_RE.match(email)
 
 
@@ -350,12 +352,16 @@ class PostPage(BaseHandler):
 class DeletePost(BaseHandler):
     # Checks for author handled on post.html template
     def get(self, post_id):
-        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
-        post = db.get(key)
+        if self.user and self.user = Post.post_author(post_id):
+            key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+            post = db.get(key)
 
-        post.delete()
+            post.delete()
 
-        self.redirect('/blog/')
+            self.redirect('/blog/')
+        else:
+            self.redirect('/signup')
+
 
 
 # Handler for editing post
