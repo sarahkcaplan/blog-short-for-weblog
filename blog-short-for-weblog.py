@@ -358,7 +358,7 @@ class DeletePost(BaseHandler):
     def get(self, post_id):
         post = Post.post_query(post_id)
 
-        if self.user and self.user = post.author:
+        if self.user and self.user == post.author:
             post.delete()
             self.redirect('/blog/')
 
@@ -373,7 +373,7 @@ class EditPost(BaseHandler):
     def get(self, post_id):
         post = Post.post_query(post_id)
 
-        if self.user and self.user = post.author:
+        if self.user and self.user == post.author:
             self.render("editpost.html", post=post, post_id=post_id)
 
         else:
@@ -386,7 +386,7 @@ class EditPost(BaseHandler):
     def post(self, post_id):
         post = Post.post_query(post_id)
 
-        if self.user and self.user = post.author:
+        if self.user and self.user == post.author:
             subject = self.request.get("subject")
             content = self.request.get("content")
 
