@@ -7,7 +7,7 @@
   <li>Read others' ideas</li>
   <li>Like and respond to others' ideas</li>
 </ul>
-<h3>Getting started on the <a href="rot13-090117.appspot.com/signup">live site</a> is easy:</h3>
+<h3>Getting started on the <a href="http://rot13-090117.appspot.com/signup">live site</a> is easy:</h3>
 <ol>
   <li>Signup</li>
   <li>Read posts on the home page</li>
