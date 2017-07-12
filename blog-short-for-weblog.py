@@ -122,10 +122,21 @@ class Post(db.Model):
     liked_by = db.ListProperty(int)
 
     @classmethod
+    def post_query(cls, post_id):
+        post_key = db.Key.from_path('Post', int(post_id),
+                                    parent=blog_key())
+        post = db.get(post_key)
+        return post
+
+    @classmethod
     def post_author(cls, post_id):
         author_query = db.Query(Post, projection=("author"))
         author = author_query.all().filter("post_id =", post_id).get()
         return author
+
+    @classmethod
+    def like_users(cls, post_id):
+        liked_query = db.Query(Post, projection=(""))
 
     def render(self):
         self._render_text = self.content.replace('\n', '<br>')
@@ -144,6 +155,13 @@ class Comments(db.Model):
         author_query = db.Query(Comment, projection=("author"))
         author = author_query.all().filter("post_id =", post_id).get()
         return author
+
+    @classmethod
+    def comment_query(cls,comment_id):
+        ccomment_key = db.Key.from_path('Comments', int(comment_id),
+                                 parent=comment_key())
+        comment = db.get(comment_key)
+        return comment
 
 # User Entity
 class User(db.Model):
@@ -325,9 +343,7 @@ class NewPost(BaseHandler):
 class PostPage(BaseHandler):
     def get(self, post_id, comment_id=None):
         if self.user:
-            post_key = db.Key.from_path('Post', int(post_id),
-                                        parent=blog_key())
-            post = db.get(post_key)
+            post = Post.post_query(post_id)
 
             uid = int(self.read_secure_cookie('user_id'))
             user = User.by_id(uid)
@@ -357,13 +373,12 @@ class PostPage(BaseHandler):
 class DeletePost(BaseHandler):
     # Checks for author handled on post.html template
     def get(self, post_id):
-        if self.user and self.user = Post.post_author(post_id):
-            key = db.Key.from_path('Post', int(post_id), parent=blog_key())
-            post = db.get(key)
+        post = Post.post_query(post_id)
 
+        if self.user and self.user = post.author:
             post.delete()
-
             self.redirect('/blog/')
+
         else:
             self.redirect('/signup')
 
@@ -373,9 +388,9 @@ class DeletePost(BaseHandler):
 class EditPost(BaseHandler):
     # Checks for author handled on post.html template
     def get(self, post_id):
-        if self.user and self.user = Post.post_author(post_id):
-            key = db.Key.from_path('Post', int(post_id), parent=blog_key())
-            post = db.get(key)
+        post = Post.post_query(post_id)
+
+        if self.user and self.user = post.author:
             self.render("editpost.html", post=post, post_id=post_id)
 
         else:
@@ -386,9 +401,9 @@ class EditPost(BaseHandler):
             return
 
     def post(self, post_id):
-        if self.user and self.user = Post.post_author(post_id):
-            key = db.Key.from_path('Post', int(post_id), parent=blog_key())
-            post = db.get(key)
+        post = Post.post_query(post_id)
+
+        if self.user and self.user = post.author:
             subject = self.request.get("subject")
             content = self.request.get("content")
 
@@ -442,9 +457,6 @@ class NewComment(BaseHandler):
 class CommentPage(BaseHandler):
     def get(self, post_id, comment_id):
         if self.user:
-            c_key = db.Key.from_path('Comments', int(comment_id),
-                                     parent=comment_key())
-            comment = db.get(c_key)
 
             self.render("comment.html", comment=comment, post_id=post_id,
                         comment_id=comment_id)
@@ -456,12 +468,9 @@ class CommentPage(BaseHandler):
 class EditComment(BaseHandler):
     # Checks for author handled on post.html template
     def get(self, post_id, comment_id):
-        if self.user and self.user = Comment.comment_author(post_id):
-            c_key = db.Key.from_path('Comments', int(comment_id),
-                                     parent=comment_key())
-            comment = db.get(c_key)
+        comment = Comment.comment_query(comment_id)
+        if self.user and self.user = comment.author:
             content = comment.content
-
             self.render('editcomment.html', post_id=post_id,
                         comment_id=comment_id, content=content)
 
@@ -469,10 +478,8 @@ class EditComment(BaseHandler):
             self.redirect('/signup')
 
     def post(self, post_id, comment_id):
-        if self.user and self.user = Comment.comment_author(post_id):
-            c_key = db.Key.from_path('Comments', int(comment_id),
-                                     parent=comment_key())
-            comment = db.get(c_key)
+        comment = Comment.comment_query(comment_id)
+        if self.user and self.user = comment.author:
             content = self.request.get("content")
 
             if content:
@@ -491,10 +498,8 @@ class EditComment(BaseHandler):
 class DeleteComment(BaseHandler):
     # Checks for author handled on post.html template
     def get(self, post_id, comment_id):
-        if self.user and self.user = Comment.comment_author(post_id):
-            key = db.Key.from_path('Comments', int(comment_id),
-                                   parent=comment_key())
-            comment = db.get(key)
+        comment = Comment.comment_query(comment_id)
+        if self.user and self.user = comment.author:
 
             comment.delete()
 
@@ -508,13 +513,9 @@ class DeleteComment(BaseHandler):
 class VoteUpPost(BaseHandler):
     # Checks for author handled on post.html template
     def get(self, post_id):
-        if self.user and self.user != Post.post_author(post_id):
-            key = db.Key.from_path('Post', int(post_id),
-                                   parent=blog_key())
-            post = db.get(key)
-
+        post = Post.post_query(post_id)
+        if self.user and self.user = post.author:
             uid = int(self.read_secure_cookie('user_id'))
-
             post.liked_by += [uid]
             post.put()
 
@@ -526,12 +527,9 @@ class VoteUpPost(BaseHandler):
 class VoteDownPost(BaseHandler):
     # Checks for author handled on post.html template
     def get(self, post_id):
-        if self.user and self.user != Post.post_author(post_id):
+        post = Post.post_query(post_id)
+        if self.user and self.user = post.author:
             uid = int(self.read_secure_cookie('user_id'))
-
-            key = db.Key.from_path('Post', int(post_id),
-                                   parent=blog_key())
-            post = db.get(key)
 
             liked_by_position = post.liked_by.index(uid)
             del post.liked_by[liked_by_position]
