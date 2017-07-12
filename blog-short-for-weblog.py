@@ -462,7 +462,7 @@ class EditComment(BaseHandler):
 
     def post(self, post_id, comment_id):
         comment = Comment.comment_query(comment_id)
-        if self.user and self.user = comment.author:
+        if self.user and self.user == comment.author:
             content = self.request.get("content")
 
             if content:
@@ -483,7 +483,7 @@ class DeleteComment(BaseHandler):
     def get(self, post_id, comment_id):
         comment = Comment.comment_query(comment_id)
 
-        if self.user and self.user = comment.author:
+        if self.user and self.user == comment.author:
 
             comment.delete()
 
