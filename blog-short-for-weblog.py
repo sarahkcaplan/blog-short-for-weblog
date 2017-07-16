@@ -452,7 +452,7 @@ class EditComment(BaseHandler):
     # Checks for author handled on post.html template
     def get(self, post_id, comment_id):
         comment = Comment.comment_query(comment_id)
-        if self.user and self.user = comment.author:
+        if self.user and self.user == comment.author:
             content = comment.content
             self.render('editcomment.html', post_id=post_id,
                         comment_id=comment_id, content=content)
@@ -500,13 +500,13 @@ class VoteUpPost(BaseHandler):
         post = Post.post_query(post_id)
         uid = int(self.read_secure_cookie('user_id'))
 
-        if uid not in post.liked_by:
+        # if uid not in post.liked_by:
 
-        elif self.user and self.user != post.author:
+        if self.user and self.user != post.author:
             post.liked_by += [uid]
             post.put()
-
             self.redirect("/blog/%s" % str(post.key().id()))
+
         else:
             self.redirect('/signup')
 
