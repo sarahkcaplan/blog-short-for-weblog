@@ -9,25 +9,28 @@ import hashlib
 import hmac
 from google.appengine.ext import db
 import utils
-from base import BaseHandler
-from commentpage import CommentPage
-from deletecomment import DeleteComment
-from deletepost import DeletePost
-from editcomment import EditComment
-from editpost import EditPost
-from home import Home
-from login import Login
-from logout import Logout
-from newcomment import NewComment
-from newpost import NewPost
-from postpage import PostPage
-from register import Register
-from signup import SignUp
-from votedown import VoteDown
-from voteup import VoteUp
-from comments import Comments
-from post import Post
-from user import User
+
+from handlers import BaseHandler, CommentPage
+
+# from base import BaseHandler
+# from commentpage import CommentPage
+# from deletecomment import DeleteComment
+# from deletepost import DeletePost
+# from editcomment import EditComment
+# from editpost import EditPost
+# from home import Home
+# from login import Login
+# from logout import Logout
+# from newcomment import NewComment
+# from newpost import NewPost
+# from postpage import PostPage
+# from register import Register
+# from signup import SignUp
+# from votedown import VoteDown
+# from voteup import VoteUp
+# from comments import Comments
+# from post import Post
+# from user import User
 
 # Load templates and envoke Jinja2
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
