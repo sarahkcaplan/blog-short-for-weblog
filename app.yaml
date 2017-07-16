@@ -10,7 +10,7 @@ handlers:
   static_dir: static/images
 
 - url: /.*
-  script: blog-short-for-weblog.app
+  script: __init__.app
 
 libraries:
 - name: jinja2
