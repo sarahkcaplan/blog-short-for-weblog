@@ -1,5 +1,5 @@
 from google.appengine.ext import db
-import utils
+from utils import *
 
 
 # User Entity

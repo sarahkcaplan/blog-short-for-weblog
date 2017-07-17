@@ -1,4 +1,4 @@
-import utils
+from utils import *
 from base import BaseHandler
 from models.user import User
 

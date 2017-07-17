@@ -1,7 +1,7 @@
+from utils import *
 from base import BaseHandler
 from models.user import User
 from models.comments import Comments
-import utils
 
 # Handler for adding a comment to a post.
 class NewComment(BaseHandler):
