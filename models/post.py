@@ -2,6 +2,9 @@ from google.appengine.ext import db
 from utils import *
 from user import User
 
+def blog_key(name='default'):
+    return db.Key.from_path('blogs', name)
+
 # Blog Post Entity
 class Post(db.Model):
     author = db.StringProperty(required=True)

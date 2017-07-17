@@ -1,6 +1,9 @@
 from google.appengine.ext import db
 from user import User
 
+def comment_key(group='default'):
+    return db.Key.from_path('comment', group)
+
 # Comments Entity
 class Comments(db.Model):
     author = db.StringProperty(required=True)

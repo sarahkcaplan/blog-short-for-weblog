@@ -1,6 +1,9 @@
 from google.appengine.ext import db
 from utils import *
 
+def users_key(group='default'):
+    return db.Key.from_path('users', group)
+
 def make_salt(length=5):
     return ''.join(random.SystemRandom().choice(string.ascii_letters)
                    for x in range(length))
