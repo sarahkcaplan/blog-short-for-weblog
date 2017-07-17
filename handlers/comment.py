@@ -1,6 +1,6 @@
 from base import BaseHandler
 from models.user import User
-from blog.models.comments import Comments
+from models.comments import Comments
 import utils
 
 # Handler for adding a comment to a post.

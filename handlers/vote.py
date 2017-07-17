@@ -1,6 +1,6 @@
 from base import BaseHandler
-from blog.models.user import User
-from blog.models.post import Post
+from models.user import User
+from models.post import Post
 
 # Handler for liking post
 class VoteUpPost(BaseHandler):

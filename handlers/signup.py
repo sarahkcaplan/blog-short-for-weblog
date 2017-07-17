@@ -1,6 +1,6 @@
 import utils
 from base import BaseHandler
-from blog.models.user import User
+from models.user import User
 
 class SignUp(BaseHandler):
     def get(self):
