@@ -1,6 +1,7 @@
 from base import BaseHandler
 from models.user import User
 from models.post import Post
+from google.appengine.ext import db
 
 # Handler Home page
 class Home(BaseHandler):
