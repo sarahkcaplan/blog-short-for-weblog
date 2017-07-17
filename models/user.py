@@ -1,11 +1,17 @@
 from google.appengine.ext import db
-from utils import make_salt
+from utils import *
+
+def make_salt(length=5):
+    return ''.join(random.SystemRandom().choice(string.ascii_letters)
+                   for x in range(length))
 
 def make_pw_hash(name, pw, salt=None):
     if not salt:
         salt = make_salt()
     h = hashlib.sha256(name + pw + salt).hexdigest()
     return "%s,%s" % (salt, h)
+
+
 
 # User Entity
 class User(db.Model):
