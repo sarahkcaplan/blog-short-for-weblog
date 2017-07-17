@@ -1,5 +1,6 @@
 import utils
 from base import BaseHandler
+from signup import SignUp
 from models.user import User
 
 # Register handler
