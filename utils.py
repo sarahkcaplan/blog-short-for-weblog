@@ -60,3 +60,18 @@ def make_pw_hash(name, pw, salt=None):
 def valid_pw(name, password, h):
     salt = h.split(',')[0]
     return h == make_pw_hash(name, password, salt)
+
+# Blog sign up
+def valid_username(username):
+    USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
+    return username and USER_RE.match(username)
+
+
+def valid_password(password):
+    PASS_RE = re.compile(r"^.{3,20}$")
+    return password and PASS_RE.match(password)
+
+
+def valid_email(email):
+    EMAIL_RE = re.compile(r'^[\S]+@[\S]+\.[\S]+$')
+    return not email or EMAIL_RE.match(email)
