@@ -10,8 +10,8 @@ import hmac
 from google.appengine.ext import db
 
 import utils
-# from blog.handlers.base import BaseHandler
-from blog.handlers.comment import CommentPage, DeleteComment, EditComment, NewComment
+from handlers.base import BaseHandler
+from handlers.comment import CommentPage, DeleteComment, EditComment, NewComment
 from blog.handlers.post import PostPage, NewPost, EditPost, DeletePost
 from blog.handlers.home import Home
 from blog.handlers.login import Login
