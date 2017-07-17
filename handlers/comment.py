@@ -3,6 +3,9 @@ from base import BaseHandler
 from models.user import User
 from models.comments import Comments
 
+def comment_key(group='default'):
+    return db.Key.from_path('comment', group)
+
 # Handler for adding a comment to a post.
 class NewComment(BaseHandler):
     def get(self, post_id):

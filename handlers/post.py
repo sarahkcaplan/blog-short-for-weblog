@@ -3,6 +3,9 @@ from models.user import User
 from models.post import Post
 from models.comments import Comments
 
+def blog_key(name='default'):
+    return db.Key.from_path('blogs', name)
+
 # Page for creating new posts.
 # Successful post redirects to post's permalink location.
 class NewPost(BaseHandler):
