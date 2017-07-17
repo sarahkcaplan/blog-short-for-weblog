@@ -1,5 +1,6 @@
 import utils
 from base import BaseHandler
+from blog-short-for-weblog.models.user import User
 
 # Handler Home page
 class Home(BaseHandler):
