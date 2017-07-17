@@ -2,6 +2,7 @@ from base import BaseHandler
 from models.user import User
 from models.post import Post
 from models.comments import Comments
+from google.appengine.ext import db
 
 def blog_key(name='default'):
     return db.Key.from_path('blogs', name)
