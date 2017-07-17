@@ -1,5 +1,5 @@
 import webapp2
-import utils
+from utils import *
 from models.user import User
 
 # BaseHandler class with common functionality for all blog pages.
