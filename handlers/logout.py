@@ -1,4 +1,4 @@
-import blog.utils
+import utils
 from base import BaseHandler
 from blog.models.user import User
 
