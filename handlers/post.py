@@ -1,7 +1,7 @@
 from base import BaseHandler
-from blog-short-for-weblog.models.user import User
-from blog-short-for-weblog.models.post import Post
-from blog-short-for-weblog.models.comments import Comments
+from blog.models.user import User
+from blog.models.post import Post
+from blog.models.comments import Comments
 
 # Page for creating new posts.
 # Successful post redirects to post's permalink location.

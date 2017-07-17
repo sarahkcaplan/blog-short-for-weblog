@@ -1,6 +1,6 @@
-import blog-short-for-weblog.utils
+import blog.utils
 from base import BaseHandler
-from blog-short-for-weblog.models.user import User
+from blog.models.user import User
 
 class SignUp(BaseHandler):
     def get(self):
