@@ -1,6 +1,6 @@
 from google.appengine.ext import db
 import utils
-from blog.models.user import User
+from user import User
 
 # Blog Post Entity
 class Post(db.Model):

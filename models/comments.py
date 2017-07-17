@@ -1,5 +1,5 @@
 from google.appengine.ext import db
-from blog.models.user import User
+from user import User
 
 # Comments Entity
 class Comments(db.Model):
