@@ -1,5 +1,5 @@
 from google.appengine.ext import db
-import blog.utils
+import utils
 from blog.models.user import User
 
 # Blog Post Entity
