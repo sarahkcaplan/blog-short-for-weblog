@@ -8,7 +8,7 @@ import string
 import hashlib
 import hmac
 from google.appengine.ext import db
-from models.post import Post
+# from models.post import Post
 
 class Utils():
     # Load templates and envoke Jinja2
