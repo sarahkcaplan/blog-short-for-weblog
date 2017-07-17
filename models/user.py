@@ -1,5 +1,5 @@
 from google.appengine.ext import db
-import utils
+from utils import make_salt
 
 def make_pw_hash(name, pw, salt=None):
     if not salt:
