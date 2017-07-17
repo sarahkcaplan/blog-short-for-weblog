@@ -1,5 +1,5 @@
 from base import BaseHandler
-from blog.models.user import User
+from models.user import User
 from blog.models.comments import Comments
 import utils
 
