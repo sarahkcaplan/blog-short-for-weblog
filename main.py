@@ -18,7 +18,7 @@ from handlers.login import Login
 from handlers.logout import Logout
 from handlers.register import Register
 from handlers.signup import SignUp
-from handlers.vote import VoteUp, VoteDown
+from handlers.vote import VoteUpPost, VoteDownPost
 from models.comments import Comments
 from models.post import Post
 from models.user import User
