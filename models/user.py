@@ -1,4 +1,6 @@
 from google.appengine.ext import db
+import blog-short-for-weblog.utils
+from blog-short-for-weblog.models.user import User
 
 # User Entity
 class User(db.Model):

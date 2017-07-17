@@ -10,7 +10,7 @@ handlers:
   static_dir: static/images
 
 - url: /.*
-  script: __init__.app
+  script: main.app
 
 libraries:
 - name: jinja2

@@ -9,6 +9,8 @@ import hashlib
 import hmac
 from google.appengine.ext import db
 
+from models.post import Post
+
 # Load templates and envoke Jinja2
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 
