@@ -10,22 +10,15 @@ import hmac
 from google.appengine.ext import db
 
 import utils
-from blog.handlers.base import BaseHandler
-from blog.handlers.commentpage import CommentPage
-from blog.handlers.deletecomment import DeleteComment
-from blog.handlers.deletepost import DeletePost
-from blog.handlers.editcomment import EditComment
-from blog.handlers.editpost import EditPost
+# from blog.handlers.base import BaseHandler
+from blog.handlers.comment import CommentPage, DeleteComment, EditComment, NewComment
+from blog.handlers.post import PostPage, NewPost, EditPost, DeletePost
 from blog.handlers.home import Home
 from blog.handlers.login import Login
 from blog.handlers.logout import Logout
-from blog.handlers.newcomment import NewComment
-from blog.handlers.newpost import NewPost
-from blog.handlers.postpage import PostPage
 from blog.handlers.register import Register
 from blog.handlers.signup import SignUp
-from blog.handlers.votedown import VoteDown
-from blog.handlers.voteup import VoteUp
+from blog.handlers.vote import VoteUp, VoteDown
 from blog.models.comments import Comments
 from blog.models.post import Post
 from blog.models.user import User
