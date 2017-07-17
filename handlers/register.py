@@ -1,4 +1,4 @@
-import utils
+import blog-short-for-weblog.utils
 from base import BaseHandler
 from blog-short-for-weblog.models.user import User
 

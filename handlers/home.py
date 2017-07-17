@@ -1,6 +1,6 @@
-import utils
 from base import BaseHandler
 from blog-short-for-weblog.models.user import User
+from blog-short-for-weblog.models.post import Post
 
 # Handler Home page
 class Home(BaseHandler):

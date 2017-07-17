@@ -1,6 +1,7 @@
 from base import BaseHandler
 from blog-short-for-weblog.models.user import User
 from blog-short-for-weblog.models.comments import Comments
+import blog-short-for-weblog.utils
 
 # Handler for adding a comment to a post.
 class NewComment(BaseHandler):
