@@ -75,3 +75,18 @@ def valid_password(password):
 def valid_email(email):
     EMAIL_RE = re.compile(r'^[\S]+@[\S]+\.[\S]+$')
     return not email or EMAIL_RE.match(email)
+
+
+# Google Datastore entities
+
+# Parent keys for each Google Datastore entity
+def blog_key(name='default'):
+    return db.Key.from_path('blogs', name)
+
+
+def users_key(group='default'):
+    return db.Key.from_path('users', group)
+
+
+def comment_key(group='default'):
+    return db.Key.from_path('comment', group)
