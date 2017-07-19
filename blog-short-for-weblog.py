@@ -327,12 +327,16 @@ class NewPost(BaseHandler):
 class PostPage(BaseHandler):
     def get(self, post_id, comment_id=None):
         if self.user:
-            post = post_query(post_id)
+            post = BaseHandler.post_query(post_id)
             uid = int(self.read_secure_cookie('user_id'))
             user = User.by_id(uid)
             current_user = str(user.name)
 
-            if uid in post.liked_by:
+            if not post:
+                self.error(404)
+                return
+
+            elif uid in post.liked_by:
                 liking_user = uid
 
             else:
@@ -356,9 +360,13 @@ class PostPage(BaseHandler):
 class DeletePost(BaseHandler):
     # Checks for author handled on post.html template
     def get(self, post_id):
-        post = Post.post_query(post_id)
+        post = BaseHandler.post_query(post_id)
 
-        if self.user and (self.user.name == post.author):
+        if not post:
+            self.error(404)
+            return
+
+        elif self.user and (self.user.name == post.author):
             post.delete()
             self.redirect('/blog/')
 
@@ -371,22 +379,26 @@ class DeletePost(BaseHandler):
 class EditPost(BaseHandler):
     # Checks for author handled on post.html template
     def get(self, post_id):
-        post = Post.post_query(post_id)
-
-        if self.user and (self.user.name == post.author):
-            self.render("editpost.html", post=post, post_id=post_id)
-
-        else:
-            self.redirect('/signup')
+        post = BaseHandler.post_query(post_id)
 
         if not post:
             self.error(404)
             return
 
-    def post(self, post_id):
-        post = Post.post_query(post_id)
+        elif self.user and (self.user.name == post.author):
+            self.render("editpost.html", post=post, post_id=post_id)
 
-        if self.user and (self.user.name == post.author):
+        else:
+            self.redirect('/signup')
+
+    def post(self, post_id):
+        post = BaseHandler.post_query(post_id)
+
+        if not post:
+            self.error(404)
+            return
+
+        elif self.user and (self.user.name == post.author):
             subject = self.request.get("subject")
             content = self.request.get("content")
 
@@ -440,7 +452,12 @@ class NewComment(BaseHandler):
 class CommentPage(BaseHandler):
     def get(self, post_id, comment_id):
         comment = BaseHandler.comment_query(comment_id)
-        if self.user:
+
+        if not comment:
+            self.error(404)
+            return
+
+        elif self.user:
 
             self.render("comment.html", comment=comment, post_id=post_id,
                         comment_id=comment_id)
@@ -456,7 +473,7 @@ class EditComment(BaseHandler):
         if not comment:
             self.error(404)
             return
-        if self.user and (self.user.name == comment.author):
+        elif self.user and (self.user.name == comment.author):
             content = comment.content
             self.render('editcomment.html', post_id=post_id,
                         comment_id=comment_id, content=content)
@@ -504,10 +521,13 @@ class DeleteComment(BaseHandler):
 class VoteUpPost(BaseHandler):
     # Checks for author also handled on post.html template
     def get(self, post_id):
-        post = Post.post_query(post_id)
+        post = BaseHandler.post_query(post_id)
         uid = int(self.read_secure_cookie('user_id'))
+        if not post:
+            self.error(404)
+            return
 
-        if uid in post.liked_by:
+        elif uid in post.liked_by:
             self.redirect('/signup')
 
         elif self.user and (self.user.name != post.author):
@@ -523,7 +543,11 @@ class VoteDownPost(BaseHandler):
     # Checks for author handled on post.html template
     def get(self, post_id):
         post = Post.post_query(post_id)
-        if self.user and (self.user.name != post.author):
+
+        if not post:
+            self.error(404)
+            return
+        elif self.user and (self.user.name != post.author):
             uid = int(self.read_secure_cookie('user_id'))
 
             liked_by_position = post.liked_by.index(uid)
