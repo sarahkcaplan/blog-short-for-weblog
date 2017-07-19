@@ -57,7 +57,7 @@ class Utils():
 
 
     def valid_pw(name, password, h):
-        salt = string.split(h, ',')[0]
+        salt = h.split(',')[0]
         return h == make_pw_hash(name, password, salt)
 
     # Blog sign up

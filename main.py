@@ -9,7 +9,7 @@ import hashlib
 import hmac
 from google.appengine.ext import db
 
-import utils
+from handlers.utils import Utils
 from handlers.base import BaseHandler
 from handlers.comment import CommentPage, DeleteComment, EditComment, NewComment
 from handlers.post import PostPage, NewPost, EditPost, DeletePost

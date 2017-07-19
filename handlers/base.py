@@ -1,6 +1,9 @@
+import string
 import webapp2
 from utils import Utils
-from models.user import User
+
+
+
 
 # BaseHandler class with common functionality for all blog pages.
 # Inherited by all classes
@@ -11,7 +14,8 @@ class BaseHandler(webapp2.RequestHandler):
 
     def render_str(self, template, **params):
         params['user'] = self.user
-        return render_str(template, **params)
+        utils = Utils()
+        return utils.render_str()
 
     def render(self, template, **kw):
         self.write(self.render_str(template, **kw))
@@ -38,3 +42,5 @@ class BaseHandler(webapp2.RequestHandler):
         webapp2.RequestHandler.initialize(self, *a, **kw)
         uid = self.read_secure_cookie('user_id')
         self.user = uid and User.by_id(int(uid))
+
+from models.user import User

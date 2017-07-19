@@ -1,4 +1,4 @@
-from utils import Utils
+from handlers.utils import Utils
 from google.appengine.ext import db
 from user import User
 
@@ -20,4 +20,4 @@ class Post(db.Model):
 
     def render(self):
         self._render_text = self.content.replace('\n', '<br>')
-        return render_str("post.html", p=self)
+        return utils.render_str("post.html", p=self)

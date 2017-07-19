@@ -1,4 +1,4 @@
-from utils import Utils
+from handlers.utils import Utils
 from google.appengine.ext import db
 from user import User
 
