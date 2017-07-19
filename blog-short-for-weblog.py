@@ -91,12 +91,20 @@ class BaseHandler(webapp2.RequestHandler):
     def logout(self):
         self.response.headers.add_header('Set-Cookie', 'user_id=; Path/')
 
+    @classmethod
+    def post_exists():
+        key = db.Key.from_path('Post', int(post_id))
+        post = db.get(key)
+
+
     # Makes sure user is logged in and cookie is secure
     # If user logged in with cookie and user exisits, sets self.user
     def initialize(self, *a, **kw):
         webapp2.RequestHandler.initialize(self, *a, **kw)
         uid = self.read_secure_cookie('user_id')
         self.user = uid and User.by_id(int(uid))
+
+
 
 # Google Datastore entities
 
@@ -109,8 +117,8 @@ def users_key(group='default'):
     return db.Key.from_path('users', group)
 
 
-def comment_key(group='default'):
-    return db.Key.from_path('comment', group)
+# def comment_key(group='default'):
+#     return db.Key.from_path('comment', group)
 
 # Blog Post Entity
 class Post(db.Model):
@@ -126,7 +134,10 @@ class Post(db.Model):
         post_key = db.Key.from_path('Post', int(post_id),
                                     parent=blog_key())
         post = db.get(post_key)
-        return post
+        if not post:
+            return self.redirect('/signup')
+        else:
+            return post
 
     def render(self):
         self._render_text = self.content.replace('\n', '<br>')
@@ -142,10 +153,12 @@ class Comments(db.Model):
 
     @classmethod
     def comment_query(cls,comment_id):
-        ccomment_key = db.Key.from_path('Comments', int(comment_id),
-                                 parent=comment_key())
+        ccomment_key = db.Key.from_path('Comments', int(comment_id))
         comment = db.get(comment_key)
-        return comment
+        if not comment:
+            return self.redirect('/signup')
+        else:
+            return comment
 
 # User Entity
 class User(db.Model):
@@ -358,7 +371,7 @@ class DeletePost(BaseHandler):
     def get(self, post_id):
         post = Post.post_query(post_id)
 
-        if self.user and self.user == post.author:
+        if self.user and (self.user.name == post.author):
             post.delete()
             self.redirect('/blog/')
 
@@ -373,7 +386,7 @@ class EditPost(BaseHandler):
     def get(self, post_id):
         post = Post.post_query(post_id)
 
-        if self.user and self.user == post.author:
+        if self.user and (self.user.name == post.author):
             self.render("editpost.html", post=post, post_id=post_id)
 
         else:
@@ -386,7 +399,7 @@ class EditPost(BaseHandler):
     def post(self, post_id):
         post = Post.post_query(post_id)
 
-        if self.user and self.user == post.author:
+        if self.user and (self.user.name == post.author):
             subject = self.request.get("subject")
             content = self.request.get("content")
 
@@ -422,7 +435,7 @@ class NewComment(BaseHandler):
                 user = User.by_id(uid)
                 author = str(user.name)
 
-                comment = Comments(parent=comment_key(), author=author,
+                comment = Comments(author=author,
                                    content=content, post_id=post_id)
                 comment.put()
                 comment_id = comment.key().id()
@@ -439,6 +452,7 @@ class NewComment(BaseHandler):
 # Handler for Comment's permalink page
 class CommentPage(BaseHandler):
     def get(self, post_id, comment_id):
+        comment = Comments.comment_query(comment_id)
         if self.user:
 
             self.render("comment.html", comment=comment, post_id=post_id,
@@ -451,8 +465,8 @@ class CommentPage(BaseHandler):
 class EditComment(BaseHandler):
     # Checks for author handled on post.html template
     def get(self, post_id, comment_id):
-        comment = Comment.comment_query(comment_id)
-        if self.user and self.user = comment.author:
+        comment = Comments.comment_query(comment_id)
+        if self.user and (self.user.name == comment.author):
             content = comment.content
             self.render('editcomment.html', post_id=post_id,
                         comment_id=comment_id, content=content)
@@ -461,8 +475,8 @@ class EditComment(BaseHandler):
             self.redirect('/signup')
 
     def post(self, post_id, comment_id):
-        comment = Comment.comment_query(comment_id)
-        if self.user and self.user == comment.author:
+        comment = Comments.comment_query(comment_id)
+        if self.user and (self.user.name == comment.author):
             content = self.request.get("content")
 
             if content:
@@ -481,9 +495,9 @@ class EditComment(BaseHandler):
 class DeleteComment(BaseHandler):
     # Checks for author handled on post.html template
     def get(self, post_id, comment_id):
-        comment = Comment.comment_query(comment_id)
+        comment = Comments.comment_query(comment_id)
 
-        if self.user and self.user == comment.author:
+        if self.user and (self.user.name == comment.author):
 
             comment.delete()
 
@@ -495,14 +509,15 @@ class DeleteComment(BaseHandler):
 
 # Handler for liking post
 class VoteUpPost(BaseHandler):
-    # Checks for author handled on post.html template
+    # Checks for author also handled on post.html template
     def get(self, post_id):
         post = Post.post_query(post_id)
         uid = int(self.read_secure_cookie('user_id'))
 
-        if uid not in post.liked_by:
+        if uid in post.liked_by:
+            self.redirect('/signup')
 
-        elif self.user and self.user != post.author:
+        elif self.user and (self.user.name != post.author):
             post.liked_by += [uid]
             post.put()
 
@@ -515,7 +530,7 @@ class VoteDownPost(BaseHandler):
     # Checks for author handled on post.html template
     def get(self, post_id):
         post = Post.post_query(post_id)
-        if self.user and self.user != post.author:
+        if self.user and (self.user.name != post.author):
             uid = int(self.read_secure_cookie('user_id'))
 
             liked_by_position = post.liked_by.index(uid)
