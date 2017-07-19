@@ -92,9 +92,17 @@ class BaseHandler(webapp2.RequestHandler):
         self.response.headers.add_header('Set-Cookie', 'user_id=; Path/')
 
     @classmethod
-    def post_exists():
-        key = db.Key.from_path('Post', int(post_id))
-        post = db.get(key)
+    def comment_query(cls,comment_id):
+        comment_key = db.Key.from_path('Comments', int(comment_id))
+        comment = db.get(comment_key)
+        return comment
+
+    @classmethod
+    def post_query(cls, post_id):
+        post_key = db.Key.from_path('Post', int(post_id),
+                                    parent=blog_key())
+        post = db.get(post_key)
+        return post
 
 
     # Makes sure user is logged in and cookie is secure
@@ -116,10 +124,6 @@ def blog_key(name='default'):
 def users_key(group='default'):
     return db.Key.from_path('users', group)
 
-
-# def comment_key(group='default'):
-#     return db.Key.from_path('comment', group)
-
 # Blog Post Entity
 class Post(db.Model):
     author = db.StringProperty(required=True)
@@ -128,16 +132,6 @@ class Post(db.Model):
     created = db.DateTimeProperty(auto_now_add=True)
     last_modified = db.DateTimeProperty(auto_now=True)
     liked_by = db.ListProperty(int)
-
-    @classmethod
-    def post_query(cls, post_id):
-        post_key = db.Key.from_path('Post', int(post_id),
-                                    parent=blog_key())
-        post = db.get(post_key)
-        if not post:
-            return self.redirect('/signup')
-        else:
-            return post
 
     def render(self):
         self._render_text = self.content.replace('\n', '<br>')
@@ -151,14 +145,7 @@ class Comments(db.Model):
     content = db.TextProperty(required=True)
     last_modified = db.DateTimeProperty(auto_now_add=True)
 
-    @classmethod
-    def comment_query(cls,comment_id):
-        ccomment_key = db.Key.from_path('Comments', int(comment_id))
-        comment = db.get(comment_key)
-        if not comment:
-            return self.redirect('/signup')
-        else:
-            return comment
+
 
 # User Entity
 class User(db.Model):
@@ -340,7 +327,7 @@ class NewPost(BaseHandler):
 class PostPage(BaseHandler):
     def get(self, post_id, comment_id=None):
         if self.user:
-            post = Post.post_query(post_id)
+            post = post_query(post_id)
             uid = int(self.read_secure_cookie('user_id'))
             user = User.by_id(uid)
             current_user = str(user.name)
@@ -452,7 +439,7 @@ class NewComment(BaseHandler):
 # Handler for Comment's permalink page
 class CommentPage(BaseHandler):
     def get(self, post_id, comment_id):
-        comment = Comments.comment_query(comment_id)
+        comment = BaseHandler.comment_query(comment_id)
         if self.user:
 
             self.render("comment.html", comment=comment, post_id=post_id,
@@ -465,7 +452,10 @@ class CommentPage(BaseHandler):
 class EditComment(BaseHandler):
     # Checks for author handled on post.html template
     def get(self, post_id, comment_id):
-        comment = Comments.comment_query(comment_id)
+        comment = BaseHandler.comment_query(comment_id)
+        if not comment:
+            self.error(404)
+            return
         if self.user and (self.user.name == comment.author):
             content = comment.content
             self.render('editcomment.html', post_id=post_id,
@@ -475,8 +465,11 @@ class EditComment(BaseHandler):
             self.redirect('/signup')
 
     def post(self, post_id, comment_id):
-        comment = Comments.comment_query(comment_id)
-        if self.user and (self.user.name == comment.author):
+        comment = BaseHandler.comment_query(comment_id)
+        if not comment:
+            self.error(404)
+            return
+        elif self.user and (self.user.name == comment.author):
             content = self.request.get("content")
 
             if content:
@@ -495,12 +488,12 @@ class EditComment(BaseHandler):
 class DeleteComment(BaseHandler):
     # Checks for author handled on post.html template
     def get(self, post_id, comment_id):
-        comment = Comments.comment_query(comment_id)
-
-        if self.user and (self.user.name == comment.author):
-
+        comment = BaseHandler.comment_query(comment_id)
+        if not comment:
+            self.error(404)
+            return
+        elif self.user and (self.user.name == comment.author):
             comment.delete()
-
             self.redirect("/blog/%s" % str(post_id))
 
         else:
