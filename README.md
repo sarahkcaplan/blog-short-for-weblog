@@ -21,4 +21,4 @@
   <li>Run $<code>gcloud init</code> to initialize GCS</li>
   <li> cd to the blog-short-for-weblog directory cloned to your local machine</li>
   <li>Run $<code>dev_appserver.py .</code> to start local server</li>
-  <li>Go to http://localhost:8080/blog to review blog app locally</li>
+  <li>Go to http://localhost:8080/blog/ to review blog app locally</li>
